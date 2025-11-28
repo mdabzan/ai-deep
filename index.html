@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Facial Analysis</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    padding: 20px;
+    background: #111;
+    color: #fff;
+}
+body.light { background: #f4f4f4; color: #000; }
+
+video, canvas {
+    width: 320px;
+    height: 240px;
+    border: 2px solid #555;
+    border-radius: 12px;
+    background: #000;
+}
+
+button {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+#thumbs {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.thumb {
+    width: 90px;
+    height: 70px;
+    border: 2px solid #888;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+}
+
+#responseBox {
+    margin-top: 25px;
+    padding: 15px;
+    width: 90%;
+    max-width: 550px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #777; padding: 8px; }
+
+#countdown { font-size: 35px; font-weight: bold; color: #0f0; margin-top: 10px; }
+
+@media (max-width: 480px){
+    video, canvas { width: 260px; height: 200px; }
+}
+
+/* FACE MESH DOTS */
+#faceDots {
+    position: absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+    pointer-events:none;
+    display:none;
+}
+.dot {
+    position:absolute;
+    width:1.5px; 
+    height:1.5px;
+    background: rgba(255,255,255,0.5);
+    border-radius:50%;
+    pointer-events:none;
+}
+#uploadProgress {
+    margin-top: 10px; width: 320px; height: 10px;
+    background:#444; border-radius:5px; display:none;
+    margin-left:auto;margin-right:auto; overflow:hidden;
+}
+#uploadProgressBar {
+    height:100%; width:0%; background:#0f0;
+    transition:width 0.2s ease;
+}
+</style>
+</head>
+<body>
+
+<button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+<h2>AI Facial Analysis</h2>
+<div id="instruction">Step 1: Look Straight (Front Face)</div>
+<div id="countdown"></div>
+
+<div style="position: relative; display: inline-block;">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    <div id="faceDots"></div>
+</div>
+
+<button id="captureBtn">Capture</button>
+<button id="retakeBtn" style="display:none; background:#d9534f; color:white;">Retake</button>
+<div id="thumbs"></div>
+<div id="uploadProgress"><div id="uploadProgressBar"></div></div>
+<div id="responseBox">Waiting for images...</div>
+
+<!-- MediaPipe Face Mesh -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+
+<script>
+let step=1,countdownNumber=3;
+let images={front:null,right:null,left:null};
+let thumbURLs={front:null,right:null,left:null};
+
+const video=document.getElementById("video");
+const canvas=document.getElementById("canvas");
+const faceDots=document.getElementById("faceDots");
+const uploadProgress=document.getElementById("uploadProgress");
+const uploadProgressBar=document.getElementById("uploadProgressBar");
+
+document.addEventListener("DOMContentLoaded", async ()=>{
+    await startCamera();
+    startFaceMesh();
+    document.getElementById("captureBtn").onclick=startCountdown;
+    document.getElementById("retakeBtn").onclick=retake;
+});
+
+/* CAMERA */
+async function startCamera(){
+    const stream=await navigator.mediaDevices.getUserMedia({video:true});
+    video.srcObject=stream;
+}
+
+/* DARK MODE */
+function toggleDarkMode(){ document.body.classList.toggle("light"); }
+
+/* COUNTDOWN */
+function startCountdown(){
+    faceDots.style.display='block';
+    document.getElementById("captureBtn").disabled=true;
+    countdownNumber=3;
+    const cd=document.getElementById("countdown");
+    cd.innerText=countdownNumber;
+
+    let timer=setInterval(()=>{
+        countdownNumber--;
+        if(countdownNumber>0){ cd.innerText=countdownNumber; }
+        else { cd.innerText=''; clearInterval(timer); capturePhoto(); }
+    },1000);
+}
+
+/* CAPTURE IMAGE */
+function capturePhoto(){
+    const ctx=canvas.getContext("2d");
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+    canvas.toBlob(blob=>{
+        let url=URL.createObjectURL(blob);
+
+        if(step===1){
+            images.front=new File([blob],"front.jpg",{type:"image/jpeg"});
+            thumbURLs.front=url;
+            step=2;
+            document.getElementById("instruction").innerText="Step 2: Turn RIGHT (show left side)";
+        }
+        else if(step===2){
+            images.right=new File([blob],"right.jpg",{type:"image/jpeg"});
+            thumbURLs.right=url;
+            step=3;
+            document.getElementById("instruction").innerText="Step 3: Turn LEFT (show right side)";
+        }
+        else if(step===3){
+            images.left=new File([blob],"left.jpg",{type:"image/jpeg"});
+            thumbURLs.left=url;
+            step=4;
+            document.getElementById("instruction").innerText="Captured all images — uploading...";
+            uploadToAPI();
+        }
+
+        updateThumbnails();
+        document.getElementById("captureBtn").disabled=false;
+        document.getElementById("retakeBtn").style.display="inline-block";
+    },"image/jpeg");
+}
+
+/* RETAKE */
+function retake(){
+    if(step===2){ images.front=null; thumbURLs.front=null; step=1; document.getElementById("instruction").innerText="Step 1: Look Straight"; }
+    if(step===3){ images.right=null; thumbURLs.right=null; step=2; document.getElementById("instruction").innerText="Step 2: Turn RIGHT"; }
+    if(step===4){ images.left=null; thumbURLs.left=null; step=3; document.getElementById("instruction").innerText="Step 3: Turn LEFT"; }
+    updateThumbnails();
+}
+
+/* THUMBNAILS */
+function updateThumbnails(){
+    const t=document.getElementById("thumbs"); t.innerHTML="";
+    if(thumbURLs.front) t.innerHTML+=`<div class="thumb" style="background-image:url('${thumbURLs.front}')"></div>`;
+    if(thumbURLs.right) t.innerHTML+=`<div class="thumb" style="background-image:url('${thumbURLs.right}')"></div>`;
+    if(thumbURLs.left) t.innerHTML+=`<div class="thumb" style="background-image:url('${thumbURLs.left}')"></div>`;
+}
+
+/* UPLOAD TO API */
+async function uploadToAPI(){
+    uploadProgress.style.display="block";
+    uploadProgressBar.style.width="0%";
+
+    const fd=new FormData();
+    fd.append("v","1.1");
+    fd.append("t","mukaz27");
+    fd.append("image1",images.front);
+    fd.append("image2",images.right);
+    fd.append("image3",images.left);
+
+    const xhr=new XMLHttpRequest();
+    xhr.open("POST","https://artifutech-face-ai-api-n.as.r.appspot.com/api",true);
+
+    xhr.upload.onprogress=e=>{
+        if(e.lengthComputable){
+            uploadProgressBar.style.width=(e.loaded/e.total*100)+"%";
+        }
+    };
+
+    xhr.onload=()=>{
+        uploadProgress.style.display="none";
+        document.getElementById("instruction").innerText="Analysis Complete";
+
+        let parsed;
+        try{ parsed=JSON.parse(xhr.responseText); }
+        catch{ parsed={response:xhr.responseText}; }
+
+        let table="<table>";
+        Object.entries(parsed).forEach(([k,v])=>{
+            table+=`<tr><th>${k}</th><td>${v}</td></tr>`;
+        });
+        table+="</table>";
+
+        document.getElementById("responseBox").innerHTML=table;
+    };
+
+    xhr.onerror=()=>{
+        uploadProgress.style.display="none";
+        document.getElementById("instruction").innerText="Upload Failed";
+    };
+
+    xhr.send(fd);
+}
+
+/* ---------- MEDIAPIPE FACEMESH OVERLAY ---------- */
+function startFaceMesh(){
+    const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+    faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.7, minTrackingConfidence:0.7});
+
+    faceMesh.onResults(results=>{
+        faceDots.innerHTML="";
+        if(results.multiFaceLandmarks && results.multiFaceLandmarks.length>0){
+            const landmarks = results.multiFaceLandmarks[0];
+            const vw = video.offsetWidth, vh = video.offsetHeight;
+            landmarks.forEach(pt=>{
+                const x = pt.x * vw;
+                const y = pt.y * vh;
+                const dot = document.createElement("div");
+                dot.className="dot";
+                dot.style.left = x+"px";
+                dot.style.top = y+"px";
+                faceDots.appendChild(dot);
+            });
+            faceDots.style.display="block";
+        } else {
+            faceDots.style.display="none";
+        }
+    });
+
+    const camera = new Camera(video,{
+        onFrame: async()=>{ await faceMesh.send({image:video}); },
+        width:320,
+        height:240
+    });
+    camera.start();
+}
+</script>
+</body>
+</html>
