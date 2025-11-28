@@ -2,106 +2,169 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AI Facial Analysis</title>
+<title>OOCS AI Facial Analysis</title>
 
 <style>
+/* ---- GLOBAL LAYOUT ---- */
 body {
     font-family: Arial;
     text-align: center;
-    padding: 20px;
+    padding: 10px;
     background: #111;
     color: #fff;
+    margin: 0;
 }
-body.light { background: #f4f4f4; color: #000; }
+
+body.light {
+    background: #f4f4f4;
+    color: #000;
+}
+
+/* MOBILEUI CONTAINER */
+.container {
+    max-width: 480px;
+    width: 100%;
+    margin: auto;
+}
+
+/* ---- VIDEO + CANVAS ---- */
+.videoWrapper {
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    margin: auto;
+}
 
 video, canvas {
-    width: 320px;
-    height: 240px;
+    width: 100%;
+    height: auto;        /* maintain aspect ratio */
+    max-width: 360px;
     border: 2px solid #555;
     border-radius: 12px;
     background: #000;
 }
 
+/* ---- BUTTONS ---- */
 button {
-    padding: 12px 20px;
-    border-radius: 8px;
+    padding: 14px 22px;
+    border-radius: 10px;
     border: none;
-    font-size: 16px;
+    font-size: 18px;
     margin-top: 15px;
     cursor: pointer;
+    width: 90%;
+    max-width: 320px;
 }
 
+/* ---- THUMBNAILS ---- */
 #thumbs {
     margin-top: 20px;
     display: flex;
     justify-content: center;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .thumb {
-    width: 90px;
-    height: 70px;
+    width: 100px;
+    height: 80px;
     border: 2px solid #888;
     border-radius: 8px;
     background-size: cover;
     background-position: center;
 }
 
+/* ---- RESPONSE BOX ---- */
 #responseBox {
     margin-top: 25px;
     padding: 15px;
-    width: 90%;
-    max-width: 550px;
+    width: 95%;
+    max-width: 480px;
     background: rgba(255,255,255,0.1);
     border-radius: 10px;
     margin-left: auto;
     margin-right: auto;
+    overflow-x: auto;
 }
 
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { border: 1px solid #777; padding: 8px; }
-
-#countdown { font-size: 35px; font-weight: bold; color: #0f0; margin-top: 10px; }
-
-@media (max-width: 480px){
-    video, canvas { width: 260px; height: 200px; }
+/* ---- TABLE ---- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+th, td {
+    border: 1px solid #777;
+    padding: 8px;
 }
 
-/* FACE MESH DOTS */
+/* ---- COUNTDOWN ---- */
+#countdown {
+    font-size: 40px;
+    font-weight: bold;
+    color: #0f0;
+    margin-top: 10px;
+}
+
+/* ---- FACE DOTS ---- */
 #faceDots {
     position: absolute;
-    top:0; left:0;
-    width:100%; height:100%;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
     pointer-events:none;
     display:none;
 }
+
 .dot {
     position:absolute;
-    width:1.5px; 
+    width:1.5px;
     height:1.5px;
     background: rgba(255,255,255,0.5);
     border-radius:50%;
-    pointer-events:none;
 }
+
+/* ---- UPLOAD PROGRESS ---- */
 #uploadProgress {
-    margin-top: 10px; width: 320px; height: 10px;
-    background:#444; border-radius:5px; display:none;
-    margin-left:auto;margin-right:auto; overflow:hidden;
+    margin-top: 12px;
+    width: 90%;
+    max-width: 360px;
+    height: 10px;
+    background:#444;
+    border-radius:5px;
+    display:none;
+    margin-left:auto;
+    margin-right:auto;
+    overflow:hidden;
 }
 #uploadProgressBar {
-    height:100%; width:0%; background:#0f0;
+    height:100%;
+    width:0%;
+    background:#0f0;
     transition:width 0.2s ease;
+}
+
+/* ---- RESPONSIVE RULES ---- */
+@media (max-width: 400px){
+    .thumb { width: 85px; height: 65px; }
+    #countdown { font-size: 32px; }
+    button { font-size: 16px; }
 }
 </style>
 </head>
+
 <body>
+
+<div class="container">
 
 <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
 <h2>AI Facial Analysis</h2>
+
 <div id="instruction">Step 1: Look Straight (Front Face)</div>
 <div id="countdown"></div>
 
-<div style="position: relative; display: inline-block;">
+<div class="videoWrapper">
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
     <div id="faceDots"></div>
@@ -109,9 +172,17 @@ th, td { border: 1px solid #777; padding: 8px; }
 
 <button id="captureBtn">Capture</button>
 <button id="retakeBtn" style="display:none; background:#d9534f; color:white;">Retake</button>
+
 <div id="thumbs"></div>
-<div id="uploadProgress"><div id="uploadProgressBar"></div></div>
+
+<div id="uploadProgress">
+    <div id="uploadProgressBar"></div>
+</div>
+
 <div id="responseBox">Waiting for images...</div>
+
+</div> <!-- END CONTAINER -->
+
 
 <!-- MediaPipe Face Mesh -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
@@ -119,6 +190,8 @@ th, td { border: 1px solid #777; padding: 8px; }
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 
 <script>
+/* --------------- JAVASCRIPT CODE --------------- */
+
 let step=1,countdownNumber=3;
 let images={front:null,right:null,left:null};
 let thumbURLs={front:null,right:null,left:null};
@@ -210,7 +283,7 @@ function updateThumbnails(){
     if(thumbURLs.left) t.innerHTML+=`<div class="thumb" style="background-image:url('${thumbURLs.left}')"></div>`;
 }
 
-/* UPLOAD TO API */
+/* UPLOAD */
 async function uploadToAPI(){
     uploadProgress.style.display="block";
     uploadProgressBar.style.width="0%";
@@ -256,7 +329,7 @@ async function uploadToAPI(){
     xhr.send(fd);
 }
 
-/* ---------- MEDIAPIPE FACEMESH OVERLAY ---------- */
+/* ---------- MEDIAPIPE FACE MESH ---------- */
 function startFaceMesh(){
     const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
     faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.7, minTrackingConfidence:0.7});
@@ -265,10 +338,14 @@ function startFaceMesh(){
         faceDots.innerHTML="";
         if(results.multiFaceLandmarks && results.multiFaceLandmarks.length>0){
             const landmarks = results.multiFaceLandmarks[0];
-            const vw = video.offsetWidth, vh = video.offsetHeight;
+
+            // Use actual video dimensions for accurate overlay
+            const vw = video.videoWidth;
+            const vh = video.videoHeight;
+
             landmarks.forEach(pt=>{
-                const x = pt.x * vw;
-                const y = pt.y * vh;
+                const x = pt.x * faceDots.offsetWidth;
+                const y = pt.y * faceDots.offsetHeight;
                 const dot = document.createElement("div");
                 dot.className="dot";
                 dot.style.left = x+"px";
@@ -289,5 +366,6 @@ function startFaceMesh(){
     camera.start();
 }
 </script>
+
 </body>
 </html>
