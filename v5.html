@@ -942,6 +942,15 @@ async function uploadToAPI() {
         Object.entries(parsed).forEach(([k, v]) => {
             table += `<tr><th>${k}</th><td>${v}</td></tr>`;
         });
+        // Add a last row with the manual link to the recommendations page
+        table += `
+            <tr>
+                <th colspan="2" style="text-align:center;">
+                    Continue to recommendations: 
+                    <a href="https://mdabzan.github.io/ai-deep/recommendations_homepage_v1.html">Click here</a>
+                </th>
+            </tr>
+        `;
         table += "</table>";
         document.getElementById("responseBox").innerHTML = table;
     };
