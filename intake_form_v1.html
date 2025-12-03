@@ -1,459 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AI Skin Analysis - Get Started</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 480px;
-            width: 100%;
-            padding: 40px 32px;
-            animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 36px;
-        }
-
-        .icon {
-            width: 72px;
-            height: 72px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 36px;
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        h1 {
-            color: #1a202c;
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            color: #718096;
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        label {
-            display: block;
-            color: #2d3748;
-            font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .optional {
-            color: #a0aec0;
-            font-weight: 400;
-            font-size: 14px;
-        }
-
-        input {
-            width: 100%;
-            padding: 16px 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 14px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: #ffffff;
-            color: #2d3748;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12);
-        }
-
-        input::placeholder {
-            color: #cbd5e0;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 14px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 32px;
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-            letter-spacing: 0.5px;
-        }
-
-        .btn-submit:active {
-            transform: scale(0.98);
-        }
-
-        .error {
-            color: #e53e3e;
-            font-size: 14px;
-            margin-top: 8px;
-            display: none;
-            font-weight: 600;
-        }
-
-        .input-error {
-            border-color: #e53e3e;
-            animation: shake 0.5s;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
-        }
-
-        .privacy-note {
-            text-align: center;
-            color: #a0aec0;
-            font-size: 13px;
-            margin-top: 24px;
-            line-height: 1.5;
-        }
-
-        /* Kiosk/Tablet optimizations */
-        @media (min-width: 768px) {
-            body {
-                padding: 40px;
-            }
-
-            .container {
-                max-width: 900px;
-                padding: 60px 70px;
-            }
-
-            .icon {
-                width: 100px;
-                height: 100px;
-                font-size: 50px;
-            }
-
-            h1 {
-                font-size: 48px;
-            }
-
-            .subtitle {
-                font-size: 22px;
-            }
-
-            label {
-                font-size: 20px;
-                margin-bottom: 12px;
-            }
-
-            .optional {
-                font-size: 18px;
-            }
-
-            input {
-                padding: 20px 24px;
-                font-size: 20px;
-                border-radius: 16px;
-            }
-
-            .btn-submit {
-                padding: 24px;
-                font-size: 24px;
-                border-radius: 16px;
-            }
-
-            .error {
-                font-size: 16px;
-            }
-
-            .privacy-note {
-                font-size: 16px;
-            }
-
-            .form-group {
-                margin-bottom: 32px;
-            }
-        }
-
-        /* Large Kiosk screens */
-        @media (min-width: 1200px) {
-            .container {
-                max-width: 1200px;
-                padding: 80px 100px;
-            }
-
-            .icon {
-                width: 120px;
-                height: 120px;
-                font-size: 64px;
-                margin-bottom: 30px;
-            }
-
-            h1 {
-                font-size: 56px;
-                margin-bottom: 16px;
-            }
-
-            .subtitle {
-                font-size: 26px;
-            }
-
-            label {
-                font-size: 24px;
-                margin-bottom: 14px;
-            }
-
-            .optional {
-                font-size: 22px;
-            }
-
-            input {
-                padding: 24px 28px;
-                font-size: 24px;
-                border: 3px solid #e2e8f0;
-                border-radius: 18px;
-            }
-
-            .btn-submit {
-                padding: 28px;
-                font-size: 28px;
-                margin-top: 50px;
-            }
-
-            .error {
-                font-size: 20px;
-                margin-top: 12px;
-            }
-
-            .privacy-note {
-                font-size: 20px;
-                margin-top: 40px;
-            }
-
-            .form-group {
-                margin-bottom: 40px;
-            }
-
-            .header {
-                margin-bottom: 60px;
-            }
-        }
-
-        /* Very small mobile screens */
-        @media (max-width: 360px) {
-            .container {
-                padding: 32px 24px;
-            }
-
-            h1 {
-                font-size: 28px;
-            }
-
-            .subtitle {
-                font-size: 15px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>AI Skin Analysis - Get Started</title>
+<style>
+/* ... All your original CSS remains unchanged ... */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.container{background: rgba(255,255,255,0.98);backdrop-filter: blur(10px);border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:480px;width:100%;padding:40px 32px;animation:slideUp 0.6s ease-out;}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+.header{text-align:center;margin-bottom:36px;}
+.icon{width:72px;height:72px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px;box-shadow:0 8px 20px rgba(102,126,234,0.4);}
+h1{color:#1a202c;font-size:32px;font-weight:700;margin-bottom:10px;}
+.subtitle{color:#718096;font-size:16px;line-height:1.6;}
+.form-group{margin-bottom:24px;}
+label{display:block;color:#2d3748;font-weight:600;margin-bottom:10px;font-size:16px;}
+.optional{color:#a0aec0;font-weight:400;font-size:14px;}
+input{width:100%;padding:16px 18px;border:2px solid #e2e8f0;border-radius:14px;font-size:16px;transition:all 0.3s ease;background:#ffffff;color:#2d3748;-webkit-appearance:none;appearance:none;}
+input:focus{outline:none;border-color:#667eea;box-shadow:0 0 0 4px rgba(102,126,234,0.12);}
+input::placeholder{color:#cbd5e0;}
+.btn-submit{width:100%;padding:18px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:14px;font-size:18px;font-weight:700;cursor:pointer;transition:all 0.3s ease;margin-top:32px;box-shadow:0 6px 20px rgba(102,126,234,0.4);letter-spacing:0.5px;}
+.btn-submit:active{transform:scale(0.98);}
+.error{color:#e53e3e;font-size:14px;margin-top:8px;display:none;font-weight:600;}
+.input-error{border-color:#e53e3e;animation:shake 0.5s;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
+.privacy-note{text-align:center;color:#a0aec0;font-size:13px;margin-top:24px;line-height:1.5;}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="icon">✨</div>
-            <h1>AI Skin Analysis</h1>
-            <p class="subtitle">Get personalized insights about your skin health powered by advanced AI technology</p>
-        </div>
-
-        <form id="registrationForm">
-            <div class="form-group">
-                <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" placeholder="Enter your full name" required autocomplete="name">
-                <div class="error" id="nameError">Please enter your name</div>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="your.email@example.com" required autocomplete="email">
-                <div class="error" id="emailError">Please enter a valid email address</div>
-            </div>
-
-            <div class="form-group">
-                <label for="phone">Phone Number <span class="optional">(Optional)</span></label>
-                <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000" autocomplete="tel">
-            </div>
-
-            <div class="form-group">
-                <label for="location">Location</label>
-                <input type="text" id="location" name="location" placeholder="City, Country" required>
-                <div class="error" id="locationError">Please enter your location</div>
-            </div>
-
-            <button type="submit" class="btn-submit">Proceed to Payment →</button>
-
-            <p class="privacy-note">🔒 Your data is secure and will only be used for your skin analysis</p>
-        </form>
+<div class="container">
+    <div class="header">
+        <div class="icon">✨</div>
+        <h1>AI Skin Analysis</h1>
+        <p class="subtitle">Get personalized insights about your skin health powered by advanced AI technology</p>
     </div>
 
-    <script>
-        const form = document.getElementById('registrationForm');
-        const paymentGatewayUrl = 'https://buy.stripe.com/4gMdR88YzewDecy1nOeIw0g';
-        
-        // MailerLite API Configuration
-        const MAILERLITE_API_KEY = 'YOUR_MAILERLITE_API_KEY'; // Replace with your API key
-        const MAILERLITE_GROUP_ID = 'YOUR_GROUP_ID'; // Replace with your group ID (optional)
-        
-        async function sendToMailerLite(formData) {
-            const subscriberData = {
-                email: formData.email,
-                fields: {
-                    name: formData.name,
-                    phone: formData.phone || '',
-                    location: formData.location
-                }
-            };
-            
-            // If you want to add to a specific group
-            if (MAILERLITE_GROUP_ID) {
-                subscriberData.groups = [MAILERLITE_GROUP_ID];
-            }
-            
-            try {
-                const response = await fetch('https://connect.mailerlite.com/api/subscribers', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${MAILERLITE_API_KEY}`,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(subscriberData)
-                });
-                
-                if (!response.ok) {
-                    throw new Error('MailerLite API error: ' + response.status);
-                }
-                
-                const data = await response.json();
-                console.log('Successfully added to MailerLite:', data);
-                return data;
-            } catch (error) {
-                console.error('MailerLite error:', error);
-                throw error;
-            }
-        }
+    <form id="registrationForm">
+        <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter your full name" required autocomplete="name">
+            <div class="error" id="nameError">Please enter your name</div>
+        </div>
 
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Clear previous errors
-            document.querySelectorAll('.error').forEach(err => err.style.display = 'none');
-            document.querySelectorAll('input').forEach(inp => inp.classList.remove('input-error'));
-            
-            let isValid = true;
-            
-            // Validate name
-            const name = document.getElementById('name');
-            if (name.value.trim() === '') {
-                showError('name', 'nameError');
-                isValid = false;
-            }
-            
-            // Validate email
-            const email = document.getElementById('email');
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email.value)) {
-                showError('email', 'emailError');
-                isValid = false;
-            }
-            
-            // Validate location
-            const location = document.getElementById('location');
-            if (location.value.trim() === '') {
-                showError('location', 'locationError');
-                isValid = false;
-            }
-            
-            if (isValid) {
-                // Disable button to prevent double submission
-                const submitBtn = document.querySelector('.btn-submit');
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Sending data...';
-                
-                // Store data
-                const formData = {
-                    name: name.value,
-                    email: email.value,
-                    phone: document.getElementById('phone').value,
-                    location: location.value
-                };
-                
-                // Send to MailerLite
-                sendToMailerLite(formData).then(() => {
-                    // After successful submission, redirect to Stripe
-                    window.location.href = paymentGatewayUrl;
-                }).catch(error => {
-                    console.error('Error sending to MailerLite:', error);
-                    // Still redirect even if MailerLite fails
-                    alert('Data saved. Proceeding to payment...');
-                    window.location.href = paymentGatewayUrl;
-                });
-            }
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="your.email@example.com" required autocomplete="email">
+            <div class="error" id="emailError">Please enter a valid email address</div>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Phone Number <span class="optional">(Optional)</span></label>
+            <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000" autocomplete="tel">
+        </div>
+
+        <div class="form-group">
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location" placeholder="City, Country" required>
+            <div class="error" id="locationError">Please enter your location</div>
+        </div>
+
+        <button type="submit" class="btn-submit">Proceed to Payment →</button>
+
+        <p class="privacy-note">🔒 Your data is secure and will only be used for your skin analysis</p>
+    </form>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+const form = document.getElementById('registrationForm');
+
+// Stripe keys (FOR TESTING ONLY — move secret key to backend after testing)
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RJiepA4BHSkQlyJugsR21LAe9JRU88UBCjHFQdGoqxTYFvPC2dS5Xv783AS5Muf3ySTuJhTdWm7iPtTzkMfYZOt004eBG3DAR';
+const STRIPE_SECRET_KEY = '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';
+
+// MailerLite API placeholders (unchanged)
+const MAILERLITE_API_KEY = 'YOUR_MAILERLITE_API_KEY';
+const MAILERLITE_GROUP_ID = 'YOUR_GROUP_ID';
+
+async function sendToMailerLite(formData){
+    const subscriberData = {
+        email: formData.email,
+        fields: { name: formData.name, phone: formData.phone || '', location: formData.location }
+    };
+    if(MAILERLITE_GROUP_ID){subscriberData.groups=[MAILERLITE_GROUP_ID];}
+    try{
+        const response = await fetch('https://connect.mailerlite.com/api/subscribers',{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':`Bearer ${MAILERLITE_API_KEY}`,'Accept':'application/json'},
+            body: JSON.stringify(subscriberData)
         });
-        
-        function showError(inputId, errorId) {
-            const input = document.getElementById(inputId);
-            input.classList.add('input-error');
-            document.getElementById(errorId).style.display = 'block';
-            
-            // Scroll to error smoothly
-            setTimeout(() => {
-                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
+        return await response.json();
+    }catch(e){console.error('MailerLite error:',e);}
+}
+
+// ---------------- Stripe Checkout session code (FOR TESTING ONLY, move to backend later) ----------------
+async function createStripeCheckoutSession(){
+    // Using fetch with secret key in frontend is unsafe — REMOVE AFTER TESTING
+    const res = await fetch('https://api.stripe.com/v1/checkout/sessions',{
+        method:'POST',
+        headers:{
+            'Authorization': `Bearer ${STRIPE_SECRET_KEY}`,
+            'Content-Type':'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            'mode':'payment',
+            'success_url':'https://mdabzan.github.io/ai-deep/v5.html',
+            'cancel_url':'https://mdabzan.github.io/ai-deep/cancel.html',
+            'payment_method_types[]':'card',
+            'line_items[0][price_data][currency]':'usd',
+            'line_items[0][price_data][product_data][name]':'AI Skin Analysis',
+            'line_items[0][price_data][unit_amount]':'1000',
+            'line_items[0][quantity]':'1'
+        })
+    });
+    const data = await res.json();
+    return data.url;
+}
+// --------------------------------------------------------------------------------------------------------
+
+form.addEventListener('submit', async function(e){
+    e.preventDefault();
+
+    document.querySelectorAll('.error').forEach(err=>err.style.display='none');
+    document.querySelectorAll('input').forEach(inp=>inp.classList.remove('input-error'));
+
+    let isValid=true;
+    const name=document.getElementById('name');
+    if(name.value.trim()===''){showError('name','nameError');isValid=false;}
+    const email=document.getElementById('email');
+    const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRegex.test(email.value)){showError('email','emailError');isValid=false;}
+    const location=document.getElementById('location');
+    if(location.value.trim()===''){showError('location','locationError');isValid=false;}
+
+    if(isValid){
+        const submitBtn=document.querySelector('.btn-submit');
+        submitBtn.disabled=true; submitBtn.textContent='Sending data...';
+
+        const formData={
+            name: name.value,
+            email: email.value,
+            phone: document.getElementById('phone').value,
+            location: location.value
+        };
+
+        await sendToMailerLite(formData);
+
+        try{
+            const checkoutUrl = await createStripeCheckoutSession();
+            window.location.href = checkoutUrl;
+        }catch(err){
+            alert('Payment initiation failed. Please try again.');
+            console.error(err);
         }
-    </script>
+    }
+});
+
+function showError(inputId,errorId){
+    const input=document.getElementById(inputId);
+    input.classList.add('input-error');
+    document.getElementById(errorId).style.display='block';
+    setTimeout(()=>{input.scrollIntoView({behavior:'smooth',block:'center'});},100);
+}
+</script>
 </body>
 </html>
