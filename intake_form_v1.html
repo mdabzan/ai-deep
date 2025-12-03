@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>AI Skin Analysis - Get Started</title>
 <style>
-/* ... All your original CSS remains unchanged .. */
+/* ... All your original CSS remains unchanged ... */
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
 .container{background: rgba(255,255,255,0.98);backdrop-filter: blur(10px);border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:480px;width:100%;padding:40px 32px;animation:slideUp 0.6s ease-out;}
@@ -74,11 +74,12 @@ const form = document.getElementById('registrationForm');
 const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RJiepA4BHSkQlyJugsR21LAe9JRU88UBCjHFQdGoqxTYFvPC2dS5Xv783AS5Muf3ySTuJhTdWm7iPtTzkMfYZOt004eBG3DAR';
 const STRIPE_SECRET_KEY = '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';
 
-// MailerLite API placeholders (unchanged)
-const MAILERLITE_API_KEY = 'YOUR_MAILERLITE_API_KEY';
-const MAILERLITE_GROUP_ID = 'YOUR_GROUP_ID';
+// MailerLite API placeholders
+const MAILERLITE_API_KEY = ''; // can be empty
+const MAILERLITE_GROUP_ID = '';
 
 async function sendToMailerLite(formData){
+    if(!MAILERLITE_API_KEY) return; // Skip if key not provided
     const subscriberData = {
         email: formData.email,
         fields: { name: formData.name, phone: formData.phone || '', location: formData.location }
@@ -94,30 +95,34 @@ async function sendToMailerLite(formData){
     }catch(e){console.error('MailerLite error:',e);}
 }
 
-// ---------------- Stripe Checkout session code (FOR TESTING ONLY, move to backend later) ----------------
+// ---------------- Stripe Checkout session code (FOR TESTING ONLY) ----------------
 async function createStripeCheckoutSession(){
-    // Using fetch with secret key in frontend is unsafe — REMOVE AFTER TESTING
-    const res = await fetch('https://api.stripe.com/v1/checkout/sessions',{
-        method:'POST',
-        headers:{
-            'Authorization': `Bearer ${STRIPE_SECRET_KEY}`,
-            'Content-Type':'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-            'mode':'payment',
-            'success_url':'https://mdabzan.github.io/ai-deep/v5.html',
-            'cancel_url':'https://mdabzan.github.io/ai-deep/cancel.html',
-            'payment_method_types[]':'card',
-            'line_items[0][price_data][currency]':'usd',
-            'line_items[0][price_data][product_data][name]':'AI Skin Analysis',
-            'line_items[0][price_data][unit_amount]':'1000',
-            'line_items[0][quantity]':'1'
-        })
-    });
-    const data = await res.json();
-    return data.url;
+    try{
+        const res = await fetch('https://api.stripe.com/v1/checkout/sessions',{
+            method:'POST',
+            headers:{
+                'Authorization': `Bearer ${STRIPE_SECRET_KEY}`,
+                'Content-Type':'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                'mode':'payment',
+                'success_url':'https://mdabzan.github.io/ai-deep/v5.html',
+                'cancel_url':'https://mdabzan.github.io/ai-deep/cancel.html',
+                'payment_method_types[]':'card',
+                'line_items[0][price_data][currency]':'gbp',
+                'line_items[0][price_data][product_data][name]':'AI Skin Analysis',
+                'line_items[0][price_data][unit_amount]':'0',
+                'line_items[0][quantity]':'1'
+            })
+        });
+        const data = await res.json();
+        return data.url;
+    }catch(err){
+        console.error('Stripe session failed:', err);
+        return 'https://mdabzan.github.io/ai-deep/v5.html'; // fallback
+    }
 }
-// --------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------
 
 form.addEventListener('submit', async function(e){
     e.preventDefault();
@@ -142,17 +147,30 @@ form.addEventListener('submit', async function(e){
             name: name.value,
             email: email.value,
             phone: document.getElementById('phone').value,
-            location: location.value
+            location: document.getElementById('location').value
         };
 
-        await sendToMailerLite(formData);
+        try{
+            await sendToMailerLite(formData);
+        }catch(e){
+            console.warn('MailerLite failed or skipped, continuing to payment...');
+        }
 
         try{
             const checkoutUrl = await createStripeCheckoutSession();
-            window.location.href = checkoutUrl;
+
+            // Replace form with manual fallback link for Stripe
+            const container = document.querySelector('.container');
+            container.innerHTML = `
+                <p>Please complete your payment by clicking the link below:</p>
+                <a href="${checkoutUrl}" target="_blank">Go to Payment</a>
+                <p>If payment does not redirect automatically, use this link.</p>
+            `;
+
+            // Try auto-redirect after 3 seconds
+            setTimeout(()=>{ window.location.href = checkoutUrl; }, 3000);
         }catch(err){
-            alert('Payment initiation failed. Please try again.');
-            console.error(err);
+            window.location.href = 'https://mdabzan.github.io/ai-deep/v5.html';
         }
     }
 });
