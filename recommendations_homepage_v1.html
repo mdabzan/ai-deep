@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeautyHub - Discover Local Beauty & Wellness</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 25px;
+        }
+
+        .search-section {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 50px 16px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        .horizontal-scroll {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            scrollbar-width: thin;
+            scrollbar-color: #667eea #f0f0f0;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .card {
+            min-width: 320px;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .card-category {
+            display: inline-block;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .card-location {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .stars {
+            color: #ffd700;
+        }
+
+        .dashboard-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .dashboard-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .dashboard {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .dashboard.active {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .dashboard-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 32px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .trending-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 69, 69, 0.95);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            z-index: 10;
+        }
+
+        .card-wrapper {
+            position: relative;
+        }
+
+        .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+            z-index: 3000;
+            font-weight: 600;
+            font-size: 16px;
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .search-section {
+                flex-direction: column;
+            }
+
+            .card {
+                min-width: 280px;
+            }
+
+            .dashboard-content {
+                padding: 30px 20px;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">BeautyHub ✨</div>
+            <div class="search-section">
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-input" id="serviceSearch" placeholder="Search for salons, spas, clinics...">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-input" id="locationSearch" placeholder="Enter location...">
+                    <span class="search-icon">📍</span>
+                </div>
+            </div>
+            <div class="filter-buttons" style="margin-top: 15px;">
+                <button class="filter-btn active" data-category="all">All</button>
+                <button class="filter-btn" data-category="salon">Salons</button>
+                <button class="filter-btn" data-category="aesthetic">Aesthetic Clinics</button>
+                <button class="filter-btn" data-category="nails">Nail Shops</button>
+                <button class="filter-btn" data-category="spa">Spas</button>
+            </div>
+        </header>
+
+        <section class="section">
+            <div class="section-title">🔥 Trending Now</div>
+            <div class="horizontal-scroll" id="trendingList"></div>
+        </section>
+
+        <section class="section">
+            <div class="section-title">💡 Suggestions For You</div>
+            <div class="horizontal-scroll" id="suggestionsList"></div>
+        </section>
+    </div>
+
+    <button class="dashboard-toggle" id="dashboardBtn">⚙️</button>
+
+    <div class="dashboard" id="dashboard">
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <div class="dashboard-title">Add New Listing</div>
+                <button class="close-btn" id="closeBtn">×</button>
+            </div>
+            <form id="listingForm">
+                <div class="form-group">
+                    <label class="form-label">Business Name *</label>
+                    <input type="text" class="form-input" id="businessName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select class="form-select" id="category" required>
+                        <option value="">Select category...</option>
+                        <option value="salon">Salon</option>
+                        <option value="aesthetic">Aesthetic Clinic</option>
+                        <option value="nails">Nail Shop</option>
+                        <option value="spa">Spa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location *</label>
+                    <input type="text" class="form-input" id="location" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Image URL</label>
+                    <input type="text" class="form-input" id="imageUrl" placeholder="https://example.com/image.jpg">
+                    <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                        💡 Use direct image links from: Unsplash, Imgur, or your own hosting
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">OR Upload Image</label>
+                    <input type="file" class="form-input" id="imageFile" accept="image/*" style="padding: 10px;">
+                    <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                        📸 Upload from your computer (JPG, PNG, GIF)
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rating (1-5) *</label>
+                    <input type="number" class="form-input" id="rating" min="1" max="5" step="0.1" value="4.5" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" id="description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="isTrending" style="width: auto; cursor: pointer;">
+                        Mark as Trending
+                    </label>
+                </div>
+                <button type="submit" class="submit-btn">Add Listing ➜</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize default data
+        const defaultData = {
+            trending: [
+                {
+                    id: 1,
+                    name: "Glamour Studio",
+                    category: "salon",
+                    location: "Downtown, New York",
+                    rating: 4.8,
+                    image: "",
+                    description: "Premium hair and beauty services"
+                },
+                {
+                    id: 2,
+                    name: "Elite Aesthetics",
+                    category: "aesthetic",
+                    location: "Beverly Hills, CA",
+                    rating: 4.9,
+                    image: "",
+                    description: "Advanced aesthetic treatments"
+                },
+                {
+                    id: 3,
+                    name: "Nail Paradise",
+                    category: "nails",
+                    location: "Miami Beach, FL",
+                    rating: 4.7,
+                    image: "",
+                    description: "Luxury nail art and care"
+                }
+            ],
+            suggestions: [
+                {
+                    id: 4,
+                    name: "Zen Spa Retreat",
+                    category: "spa",
+                    location: "Manhattan, NY",
+                    rating: 4.6,
+                    image: "",
+                    description: "Relaxation and rejuvenation"
+                },
+                {
+                    id: 5,
+                    name: "Studio Chic",
+                    category: "salon",
+                    location: "Brooklyn, NY",
+                    rating: 4.5,
+                    image: "",
+                    description: "Modern hair styling"
+                },
+                {
+                    id: 6,
+                    name: "Glow Clinic",
+                    category: "aesthetic",
+                    location: "Los Angeles, CA",
+                    rating: 4.8,
+                    image: "",
+                    description: "Skin rejuvenation specialists"
+                }
+            ]
+        };
+
+        let listings = { trending: [], suggestions: [] };
+        let activeCategory = 'all';
+
+        // Load data from memory
+        function loadData() {
+            const saved = JSON.parse(window.beautyhubData || 'null');
+            if (saved && saved.trending && saved.suggestions) {
+                listings = saved;
+            } else {
+                listings = JSON.parse(JSON.stringify(defaultData));
+                saveData();
+            }
+        }
+
+        // Save data to memory
+        function saveData() {
+            window.beautyhubData = JSON.stringify(listings);
+        }
+
+        function toggleDashboard() {
+            const dashboard = document.getElementById('dashboard');
+            dashboard.classList.toggle('active');
+        }
+
+        function createCard(listing, isTrending = false) {
+            const categoryEmojis = {
+                salon: '💇',
+                aesthetic: '✨',
+                nails: '💅',
+                spa: '🧖'
+            };
+
+            const imageStyle = listing.image ? 
+                `background-image: url('${listing.image}'); background-size: cover; background-position: center;` : 
+                '';
+
+            return `
+                <div class="card-wrapper">
+                    ${isTrending ? '<div class="trending-badge">TRENDING</div>' : ''}
+                    <div class="card">
+                        <div class="card-image" style="${imageStyle}"></div>
+                        <div class="card-content">
+                            <div class="card-category">${categoryEmojis[listing.category] || '🏢'} ${listing.category.toUpperCase()}</div>
+                            <div class="card-title">${listing.name}</div>
+                            <div class="card-location">📍 ${listing.location}</div>
+                            <div class="card-rating">
+                                <span class="stars">⭐</span>
+                                <strong>${listing.rating}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function filterListings(list) {
+            if (activeCategory === 'all') return list;
+            return list.filter(item => item.category === activeCategory);
+        }
+
+        function renderListings() {
+            const trendingFiltered = filterListings(listings.trending);
+            const suggestionsFiltered = filterListings(listings.suggestions);
+
+            document.getElementById('trendingList').innerHTML = 
+                trendingFiltered.length ? trendingFiltered.map(l => createCard(l, true)).join('') : 
+                '<p style="padding: 20px; color: #999;">No trending items in this category</p>';
+            
+            document.getElementById('suggestionsList').innerHTML = 
+                suggestionsFiltered.length ? suggestionsFiltered.map(l => createCard(l, false)).join('') : 
+                '<p style="padding: 20px; color: #999;">No suggestions in this category</p>';
+        }
+
+        function showSuccessMessage() {
+            const message = document.createElement('div');
+            message.className = 'success-message';
+            message.innerHTML = '<span style="font-size: 24px;">✅</span> <span>Listing added successfully!</span>';
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => message.remove(), 300);
+            }, 3000);
+        }
+
+        function handleSubmit(e) {
+            e.preventDefault();
+            
+            console.log('Form submitted!');
+            
+            // Handle image upload
+            const imageFile = document.getElementById('imageFile').files[0];
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            
+            if (imageFile) {
+                // Convert uploaded file to base64
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const imageData = event.target.result;
+                    createAndSaveListing(imageData);
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                // Use URL or no image
+                createAndSaveListing(imageUrl);
+            }
+        }
+
+        function createAndSaveListing(imageSource) {
+            const newListing = {
+                id: Date.now(),
+                name: document.getElementById('businessName').value.trim(),
+                category: document.getElementById('category').value,
+                location: document.getElementById('location').value.trim(),
+                rating: parseFloat(document.getElementById('rating').value),
+                image: imageSource,
+                description: document.getElementById('description').value.trim()
+            };
+
+            console.log('New listing:', newListing);
+
+            const isTrending = document.getElementById('isTrending').checked;
+            
+            if (isTrending) {
+                listings.trending.unshift(newListing);
+            } else {
+                listings.suggestions.unshift(newListing);
+            }
+
+            // Save to memory
+            saveData();
+            
+            console.log('Updated listings:', listings);
+            
+            // Reset form
+            document.getElementById('listingForm').reset();
+            
+            // Close dashboard
+            toggleDashboard();
+            
+            // Reset filters and search
+            activeCategory = 'all';
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.filter-btn[data-category="all"]').classList.add('active');
+            document.getElementById('serviceSearch').value = '';
+            document.getElementById('locationSearch').value = '';
+            
+            // Render listings
+            renderListings();
+            
+            // Show success message
+            showSuccessMessage();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Event listeners
+        document.getElementById('dashboardBtn').addEventListener('click', toggleDashboard);
+        document.getElementById('closeBtn').addEventListener('click', toggleDashboard);
+        document.getElementById('listingForm').addEventListener('submit', handleSubmit);
+
+        // Category filters
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                activeCategory = this.dataset.category;
+                renderListings();
+            });
+        });
+
+        // Search functionality
+        document.getElementById('serviceSearch').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase().trim();
+            if (!query) {
+                renderListings();
+                return;
+            }
+
+            const filtered = {
+                trending: listings.trending.filter(l => 
+                    l.name.toLowerCase().includes(query) || 
+                    l.category.toLowerCase().includes(query)
+                ),
+                suggestions: listings.suggestions.filter(l => 
+                    l.name.toLowerCase().includes(query) || 
+                    l.category.toLowerCase().includes(query)
+                )
+            };
+
+            document.getElementById('trendingList').innerHTML = 
+                filtered.trending.length ? filtered.trending.map(l => createCard(l, true)).join('') : 
+                '<p style="padding: 20px; color: #999;">No results found</p>';
+            document.getElementById('suggestionsList').innerHTML = 
+                filtered.suggestions.length ? filtered.suggestions.map(l => createCard(l, false)).join('') : 
+                '<p style="padding: 20px; color: #999;">No results found</p>';
+        });
+
+        document.getElementById('locationSearch').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase().trim();
+            if (!query) {
+                renderListings();
+                return;
+            }
+
+            const filtered = {
+                trending: listings.trending.filter(l => 
+                    l.location.toLowerCase().includes(query)
+                ),
+                suggestions: listings.suggestions.filter(l => 
+                    l.location.toLowerCase().includes(query)
+                )
+            };
+
+            document.getElementById('trendingList').innerHTML = 
+                filtered.trending.length ? filtered.trending.map(l => createCard(l, true)).join('') : 
+                '<p style="padding: 20px; color: #999;">No results found</p>';
+            document.getElementById('suggestionsList').innerHTML = 
+                filtered.suggestions.length ? filtered.suggestions.map(l => createCard(l, false)).join('') : 
+                '<p style="padding: 20px; color: #999;">No results found</p>';
+        });
+
+        // Initialize app
+        loadData();
+        renderListings();
+    </script>
+</body>
+</html>
