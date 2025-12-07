@@ -480,36 +480,42 @@ function checkFaceOrientation(landmarks){
   if(!autoCaptureEnabled) return;
   if(autoCaptureLock || step>3) return;
 
-  const leftEye = landmarks[33];
-  const rightEye = landmarks[263];
-  const nose = landmarks[1];
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const correctX = x => isAndroid ? (1 - x) : x;
 
-  const eyeMidX = (leftEye.x + rightEye.x)/2;
-  const noseOffset = nose.x - eyeMidX;
-  const noseX = nose.x;
+  // Use corrected Xs so Android selfie mirror is undone
+  const leftEyeX  = correctX(landmarks[33].x);
+  const rightEyeX = correctX(landmarks[263].x);
+  const noseX     = correctX(landmarks[1].x);
+
+  const eyeMidX = (leftEyeX + rightEyeX)/2;
+  const noseOffset = noseX - eyeMidX;
+
+  // Debug logging – watch these in Android dev tools
+  console.log(
+    `[Step ${step}] android=${isAndroid} ` +
+    `leftEyeX=${leftEyeX.toFixed(3)} rightEyeX=${rightEyeX.toFixed(3)} ` +
+    `noseX=${noseX.toFixed(3)} noseOffset=${noseOffset.toFixed(3)}`
+  );
 
   let isCorrectPose = false;
   let poseName = "";
 
-  const isAndroid = /Android/i.test(navigator.userAgent);
+  // Calibrated thresholds
+  let FRONT_THRESHOLD = isAndroid ? 0.13 : 0.08;
+  let TURN_THRESHOLD  = isAndroid ? 0.02 : 0.05;
 
-  if(isAndroid){
-    let FRONT_THRESHOLD=0.13;
-    let TURN_THRESHOLD=0.02;
-    if(step===1){
-      if(Math.abs(noseOffset) < FRONT_THRESHOLD){isCorrectPose=true;poseName="FRONT FACE";}
-    }else if(step===2){
-      if(noseOffset < -TURN_THRESHOLD){isCorrectPose=true;poseName="RIGHT TURN";}
-    }else if(step===3){
-      if(noseOffset > TURN_THRESHOLD){isCorrectPose=true;poseName="LEFT TURN";}
+  if(step===1){
+    if(Math.abs(noseOffset) < FRONT_THRESHOLD){
+      isCorrectPose=true;poseName="FRONT FACE";
     }
-  }else{
-    if(step===1){
-      if(Math.abs(noseOffset) < 0.08){isCorrectPose=true;poseName="FRONT FACE";}
-    }else if(step===2){
-      if(noseOffset < -0.05 || noseX < 0.40){isCorrectPose=true;poseName="RIGHT TURN";}
-    }else if(step===3){
-      if(noseOffset > 0.05 || noseX > 0.60){isCorrectPose=true;poseName="LEFT TURN";}
+  }else if(step===2){
+    if(noseOffset < -TURN_THRESHOLD){
+      isCorrectPose=true;poseName="RIGHT TURN";
+    }
+  }else if(step===3){
+    if(noseOffset > TURN_THRESHOLD){
+      isCorrectPose=true;poseName="LEFT TURN";
     }
   }
 
@@ -557,8 +563,11 @@ function startFaceMesh(){
       const landmarks=results.multiFaceLandmarks[0];
       const vw=video.offsetWidth;
       const vh=video.offsetHeight;
+      const isAndroid = /Android/i.test(navigator.userAgent);
+
       landmarks.forEach(pt=>{
-        const x = pt.x * vw;  // no (1-x) flip now
+        const correctedX = isAndroid ? (1 - pt.x) : pt.x;
+        const x = correctedX * vw;
         const y = pt.y * vh;
         const dot=document.createElement("div");
         dot.className="dot";
@@ -566,6 +575,7 @@ function startFaceMesh(){
         dot.style.top=y+"px";
         faceDots.appendChild(dot);
       });
+
       faceDots.style.display="block";
       checkFaceOrientation(landmarks);
     }else{
