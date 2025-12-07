@@ -6,7 +6,6 @@
 <title>AI Facial Analysis</title>
 
 <style>
-/* ---- CSS VARIABLES ---- */
 :root {
     --primary: #6366f1;
     --primary-dark: #4f46e5;
@@ -23,723 +22,166 @@
     --shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
     --shadow-lg: 0 25px 50px -12px rgba(0,0,0,0.25);
 }
-
-/* ---- GLOBAL RESET & LAYOUT ---- */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: var(--bg-dark);
-    color: var(--text-dark);
-    min-height: 100vh;
-    transition: background 0.3s ease, color 0.3s ease;
-    overflow-x: hidden;
-}
-
-body.light {
-    background: var(--bg-light);
-    color: var(--text-light);
-}
-
-/* ---- ANIMATED BACKGROUND ---- */
-.bg-animation {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    opacity: 0.05;
-    pointer-events: none;
-}
-
-.bg-gradient {
-    position: absolute;
-    width: 500px;
-    height: 500px;
-    border-radius: 50%;
-    filter: blur(100px);
-    animation: float 20s infinite ease-in-out;
-}
-
-.bg-gradient:nth-child(1) {
-    background: var(--primary);
-    top: -250px;
-    left: -250px;
-}
-
-.bg-gradient:nth-child(2) {
-    background: var(--success);
-    bottom: -250px;
-    right: -250px;
-    animation-delay: -10s;
-}
-
-@keyframes float {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(100px, -100px) scale(1.1); }
-    66% { transform: translate(-50px, 100px) scale(0.9); }
-}
-
-/* ---- CONTAINER ---- */
-.container {
-    max-width: 600px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 20px;
-    position: relative;
-    z-index: 1;
-}
-
-/* ---- HEADER ---- */
-.header {
-    text-align: center;
-    margin-bottom: 30px;
-    animation: fadeInDown 0.6s ease;
-}
-
-.theme-toggle {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: 2px solid var(--border-dark);
-    background: var(--bg-card-dark);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow);
-}
-
-body.light .theme-toggle {
-    border-color: var(--border-light);
-    background: var(--bg-card-light);
-}
-
-.theme-toggle:hover {
-    transform: rotate(180deg) scale(1.1);
-}
-
-.theme-toggle::before {
-    content: '🌙';
-    font-size: 24px;
-}
-
-body.light .theme-toggle::before {
-    content: '☀️';
-}
-
-h1 {
-    font-size: clamp(28px, 5vw, 36px);
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--primary), var(--success));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 10px;
-    letter-spacing: -0.5px;
-}
-
-.subtitle {
-    font-size: 16px;
-    opacity: 0.7;
-    font-weight: 400;
-}
-
-/* ---- INSTRUCTION CARD ---- */
-.instruction-card {
-    background: var(--bg-card-dark);
-    border: 1px solid var(--border-dark);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow);
-    animation: fadeIn 0.6s ease 0.2s both;
-    position: relative;
-    overflow: hidden;
-}
-
-body.light .instruction-card {
-    background: var(--bg-card-light);
-    border-color: var(--border-light);
-}
-
-.instruction-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary), var(--success));
-}
-
-.step-indicator {
-    display: inline-block;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
-#instruction {
-    font-size: 18px;
-    font-weight: 500;
-    line-height: 1.5;
-}
-
-#countdown {
-    font-size: clamp(48px, 10vw, 72px);
-    font-weight: 800;
-    color: var(--success);
-    margin-top: 12px;
-    text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
-    animation: pulse 1s ease-in-out;
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-/* ---- VIDEO WRAPPER ---- */
-.video-card {
-    background: var(--bg-card-dark);
-    border: 1px solid var(--border-dark);
-    border-radius: 20px;
-    padding: 16px;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow-lg);
-    animation: fadeIn 0.6s ease 0.4s both;
-}
-
-body.light .video-card {
-    background: var(--bg-card-light);
-    border-color: var(--border-light);
-}
-
-.video-wrapper {
-    position: relative;
-    width: 100%;
-    border-radius: 16px;
-    overflow: hidden;
-    background: #000;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
-}
-
-video {
-    width: 100%;
-    height: auto;
-    display: block;
-    /* Mirror selfie preview if front camera */
-    transform: scaleX(-1);
-    -webkit-transform: scaleX(-1);
-}
-
-canvas {
-    display: none;
-}
-
-/* ---- FACE DOTS ---- */
-#faceDots {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    display: none;
-}
-
-.dot {
-    position: absolute;
-    width: 1.5px;
-    height: 1.5px;
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 50%;
-}
-
-/* ---- FACE GUIDE OVERLAY ---- */
-.face-guide {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 50%;
-    height: 65%;
-    max-width: 200px;
-    max-height: 280px;
-    pointer-events: none;
-    z-index: 10;
-}
-
-.face-oval {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border: 3px solid rgba(99, 102, 241, 0.6);
-    border-radius: 50% 50% 50% 50 / 55% 55% 45% 45%;
-    box-shadow: 
-        0 0 0 2000px rgba(0, 0, 0, 0.4),
-        inset 0 0 20px rgba(99, 102, 241, 0.3),
-        0 0 30px rgba(99, 102, 241, 0.4);
-    animation: guidePulse 2s ease-in-out infinite;
-}
-
-@keyframes guidePulse {
-    0%, 100% { 
-        border-color: rgba(99, 102, 241, 0.6);
-        box-shadow: 
-            0 0 0 2000px rgba(0, 0, 0, 0.4),
-            inset 0 0 20px rgba(99, 102, 241, 0.3),
-            0 0 30px rgba(99, 102, 241, 0.4);
-    }
-    50% { 
-        border-color: rgba(16, 185, 129, 0.8);
-        box-shadow: 
-            0 0 0 2000px rgba(0, 0, 0, 0.4),
-            inset 0 0 20px rgba(16, 185, 129, 0.4),
-            0 0 40px rgba(16, 185, 129, 0.6);
-    }
-}
-
-.guide-text {
-    position: absolute;
-    bottom: -40px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: white;
-    font-size: 14px;
-    font-weight: 600;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-    white-space: nowrap;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 6px 12px;
-    border-radius: 8px;
-}
-
-/* ---- VISUAL FEEDBACK FOR AUTO CAPTURE ---- */
-.detection-indicator {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(16, 185, 129, 0.9);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    z-index: 20;
-    display: none;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-}
-
-.detection-indicator.show {
-    display: block;
-    animation: fadeIn 0.3s ease;
-}
-
-/* ---- TURN INSTRUCTION OVERLAY ---- */
-.turn-instruction {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.85);
-    color: white;
-    padding: 20px 30px;
-    border-radius: 16px;
-    font-size: 24px;
-    font-weight: 700;
-    z-index: 15;
-    display: none;
-    text-align: center;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-    border: 2px solid rgba(99, 102, 241, 0.5);
-}
-
-.turn-instruction.show {
-    display: block;
-    animation: fadeIn 0.3s ease;
-}
-
-.turn-instruction .arrow {
-    font-size: 48px;
-    display: block;
-    margin-top: 10px;
-}
-
-/* ---- BUTTONS ---- */
-.button-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 24px;
-    animation: fadeIn 0.6s ease 0.6s both;
-}
-
-button {
-    padding: 16px 24px;
-    border-radius: 12px;
-    border: none;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-}
-
-button::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-}
-
-button:active::before {
-    width: 300px;
-    height: 300px;
-}
-
-#captureBtn {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
-}
-
-#captureBtn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
-}
-
-#captureBtn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-#retakeBtn {
-    background: linear-gradient(135deg, var(--danger), #dc2626);
-    color: white;
-}
-
-#retakeBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
-}
-
-#autoCaptureBtn {
-    background: var(--bg-card-dark);
-    color: var(--text-dark);
-    border: 2px solid var(--border-dark);
-}
-
-body.light #autoCaptureBtn {
-    background: var(--bg-card-light);
-    color: var(--text-light);
-    border-color: var(--border-light);
-}
-
-#autoCaptureBtn.active {
-    background: linear-gradient(135deg, var(--success), #059669);
-    color: white;
-    border-color: var(--success);
-}
-
-#autoCaptureBtn:hover {
-    transform: translateY(-2px);
-}
-
-/* ---- THUMBNAILS ---- */
-#thumbs {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
-    animation: fadeIn 0.6s ease 0.8s both;
-}
-
-.thumb {
-    aspect-ratio: 4/3;
-    border: 2px solid var(--border-dark);
-    border-radius: 12px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow);
-}
-
-body.light .thumb {
-    border-color: var(--border-light);
-}
-
-.thumb:hover {
-    transform: scale(1.05);
-    box-shadow: var(--shadow-lg);
-}
-
-.thumb::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.thumb:hover::after {
-    opacity: 1;
-}
-
-/* ---- UPLOAD PROGRESS ---- */
-#uploadProgress {
-    width: 100%;
-    height: 8px;
-    background: var(--bg-card-dark);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 24px;
-    display: none;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-}
-
-body.light #uploadProgress {
-    background: var(--bg-card-light);
-}
-
-#uploadProgressBar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--primary), var(--success));
-    transition: width 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-#uploadProgressBar::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
-
-/* ---- RESPONSE BOX ---- */
-#responseBox {
-    background: var(--bg-card-dark);
-    border: 1px solid var(--border-dark);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: var(--shadow);
-    animation: fadeIn 0.6s ease 1s both;
-    min-height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-body.light #responseBox {
-    background: var(--bg-card-light);
-    border-color: var(--border-light);
-}
-
-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 8px;
-}
-
-th, td {
-    padding: 12px;
-    text-align: left;
-}
-
-th {
-    background: rgba(99, 102, 241, 0.1);
-    font-weight: 600;
-    border-radius: 8px 0 0 8px;
-}
-
-td {
-    background: rgba(99, 102, 241, 0.05);
-    border-radius: 0 8px 8px 0;
-}
-
-/* ---- ANIMATIONS ---- */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ---- RESPONSIVE ---- */
-@media (max-width: 640px) {
-    .container {
-        padding: 16px;
-    }
-    
-    .theme-toggle {
-        width: 44px;
-        height: 44px;
-        top: 16px;
-        right: 16px;
-    }
-    
-    .instruction-card {
-        padding: 16px;
-    }
-    
-    .video-card {
-        padding: 12px;
-    }
-    
-    button {
-        padding: 14px 20px;
-        font-size: 15px;
-    }
-    
-    #responseBox {
-        padding: 16px;
-    }
-    
-    th, td {
-        padding: 10px 8px;
-        font-size: 14px;
-    }
-}
-
-@media (max-width: 400px) {
-    h1 {
-        font-size: 24px;
-    }
-    
-    .subtitle {
-        font-size: 14px;
-    }
-    
-    #instruction {
-        font-size: 16px;
-    }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    background:var(--bg-dark);color:var(--text-dark);min-height:100vh;
+    transition:background .3s ease,color .3s ease;overflow-x:hidden;
+}
+body.light{background:var(--bg-light);color:var(--text-light);}
+.bg-animation{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;opacity:.05;pointer-events:none;}
+.bg-gradient{position:absolute;width:500px;height:500px;border-radius:50%;filter:blur(100px);animation:float 20s infinite ease-in-out;}
+.bg-gradient:nth-child(1){background:var(--primary);top:-250px;left:-250px;}
+.bg-gradient:nth-child(2){background:var(--success);bottom:-250px;right:-250px;animation-delay:-10s;}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(100px,-100px) scale(1.1);}66%{transform:translate(-50px,100px) scale(.9);}}
+.container{max-width:600px;width:100%;margin:0 auto;padding:20px;position:relative;z-index:1;}
+.header{text-align:center;margin-bottom:30px;animation:fadeInDown .6s ease;}
+.theme-toggle{position:absolute;top:20px;right:20px;width:50px;height:50px;border-radius:50%;border:2px solid var(--border-dark);background:var(--bg-card-dark);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s ease;box-shadow:var(--shadow);}
+body.light .theme-toggle{border-color:var(--border-light);background:var(--bg-card-light);}
+.theme-toggle:hover{transform:rotate(180deg) scale(1.1);}
+.theme-toggle::before{content:'🌙';font-size:24px;}
+body.light .theme-toggle::before{content:'☀️';}
+h1{font-size:clamp(28px,5vw,36px);font-weight:700;background:linear-gradient(135deg,var(--primary),var(--success));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;letter-spacing:-.5px;}
+.subtitle{font-size:16px;opacity:.7;font-weight:400;}
+.instruction-card{background:var(--bg-card-dark);border:1px solid var(--border-dark);border-radius:16px;padding:20px;margin-bottom:24px;box-shadow:var(--shadow);animation:fadeIn .6s ease .2s both;position:relative;overflow:hidden;}
+body.light .instruction-card{background:var(--bg-card-light);border-color:var(--border-light);}
+.instruction-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--primary),var(--success));}
+.step-indicator{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;padding:6px 16px;border-radius:20px;font-size:14px;font-weight:600;margin-bottom:12px;}
+#instruction{font-size:18px;font-weight:500;line-height:1.5;}
+#countdown{font-size:clamp(48px,10vw,72px);font-weight:800;color:var(--success);margin-top:12px;text-shadow:0 0 20px rgba(16,185,129,.5);animation:pulse 1s ease-in-out;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+.video-card{background:var(--bg-card-dark);border:1px solid var(--border-dark);border-radius:20px;padding:16px;margin-bottom:24px;box-shadow:var(--shadow-lg);animation:fadeIn .6s ease .4s both;}
+body.light .video-card{background:var(--bg-card-light);border-color:var(--border-light);}
+.video-wrapper{position:relative;width:100%;border-radius:16px;overflow:hidden;background:#000;box-shadow:inset 0 0 20px rgba(0,0,0,.3);}
+video{width:100%;height:auto;display:block;transform:scaleX(-1);-webkit-transform:scaleX(-1);}
+canvas{display:none;}
+#faceDots{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;display:none;}
+.dot{position:absolute;width:1.5px;height:1.5px;background:rgba(255,255,255,.5);border-radius:50%;}
+.face-guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50%;height:65%;max-width:200px;max-height:280px;pointer-events:none;z-index:10;}
+.face-oval{position:absolute;width:100%;height:100%;border:3px solid rgba(99,102,241,.6);border-radius:50% 50% 50% 50 / 55% 55% 45% 45%;box-shadow:0 0 0 2000px rgba(0,0,0,.4),inset 0 0 20px rgba(99,102,241,.3),0 0 30px rgba(99,102,241,.4);animation:guidePulse 2s ease-in-out infinite;}
+@keyframes guidePulse{0%,100%{border-color:rgba(99,102,241,.6);box-shadow:0 0 0 2000px rgba(0,0,0,.4),inset 0 0 20px rgba(99,102,241,.3),0 0 30px rgba(99,102,241,.4);}50%{border-color:rgba(16,185,129,.8);box-shadow:0 0 0 2000px rgba(0,0,0,.4),inset 0 0 20px rgba(16,185,129,.4),0 0 40px rgba(16,185,129,.6);}}
+.guide-text{position:absolute;bottom:-40px;left:50%;transform:translateX(-50%);color:#fff;font-size:14px;font-weight:600;text-shadow:0 2px 4px rgba(0,0,0,.8);white-space:nowrap;background:rgba(0,0,0,.6);padding:6px 12px;border-radius:8px;}
+.detection-indicator{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(16,185,129,.9);color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;z-index:20;display:none;box-shadow:0 4px 12px rgba(16,185,129,.4);}
+.turn-instruction{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.85);color:#fff;padding:20px 30px;border-radius:16px;font-size:24px;font-weight:700;z-index:15;display:none;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.6);border:2px solid rgba(99,102,241,.5);}
+.turn-instruction .arrow{font-size:48px;display:block;margin-top:10px;}
+.turn-instruction.show{display:block;animation:fadeIn .3s ease;}
+.button-group{display:flex;flex-direction:column;gap:12px;margin-bottom:24px;animation:fadeIn .6s ease .6s both;}
+button{padding:16px 24px;border-radius:12px;border:none;font-size:16px;font-weight:600;cursor:pointer;transition:all .3s ease;position:relative;overflow:hidden;box-shadow:var(--shadow);}
+button::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,.3);transform:translate(-50%,-50%);transition:width .6s,height .6s;}
+button:active::before{width:300px;height:300px;}
+#captureBtn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;}
+#captureBtn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 25px rgba(99,102,241,.3);}
+#captureBtn:disabled{opacity:.5;cursor:not-allowed;}
+#retakeBtn{background:linear-gradient(135deg,var(--danger),#dc2626);color:#fff;}
+#retakeBtn:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(239,68,68,.3);}
+#autoCaptureBtn{background:var(--bg-card-dark);color:var(--text-dark);border:2px solid var(--border-dark);}
+body.light #autoCaptureBtn{background:var(--bg-card-light);color:var(--text-light);border-color:var(--border-light);}
+#autoCaptureBtn.active{background:linear-gradient(135deg,var(--success),#059669);color:#fff;border-color:var(--success);}
+#autoCaptureBtn:hover{transform:translateY(-2px);}
+#thumbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px;margin-bottom:24px;animation:fadeIn .6s ease .8s both;}
+.thumb{aspect-ratio:4/3;border:2px solid var(--border-dark);border-radius:12px;background-size:cover;background-position:center;position:relative;overflow:hidden;transition:all .3s ease;box-shadow:var(--shadow);}
+body.light .thumb{border-color:var(--border-light);}
+.thumb:hover{transform:scale(1.05);box-shadow:var(--shadow-lg);}
+.thumb::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(16,185,129,.1));opacity:0;transition:opacity .3s ease;}
+.thumb:hover::after{opacity:1;}
+#uploadProgress{width:100%;height:8px;background:var(--bg-card-dark);border-radius:4px;overflow:hidden;margin-bottom:24px;display:none;box-shadow:inset 0 2px 4px rgba(0,0,0,.1);}
+body.light #uploadProgress{background:var(--bg-card-light);}
+#uploadProgressBar{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--success));transition:width .3s ease;position:relative;overflow:hidden;}
+#uploadProgressBar::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shimmer 1.5s infinite;}
+@keyframes shimmer{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+#responseBox{background:var(--bg-card-dark);border:1px solid var(--border-dark);border-radius:16px;padding:24px;box-shadow:var(--shadow);animation:fadeIn .6s ease 1s both;min-height:100px;display:flex;align-items:center;justify-content:center;}
+body.light #responseBox{background:var(--bg-card-light);border-color:var(--border-light);}
+table{width:100%;border-collapse:separate;border-spacing:0 8px;}
+th,td{padding:12px;text-align:left;}
+th{background:rgba(99,102,241,.1);font-weight:600;border-radius:8px 0 0 8px;}
+td{background:rgba(99,102,241,.05);border-radius:0 8px 8px 0;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:640px){
+    .container{padding:16px;}
+    .theme-toggle{width:44px;height:44px;top:16px;right:16px;}
+    .instruction-card{padding:16px;}
+    .video-card{padding:12px;}
+    button{padding:14px 20px;font-size:15px;}
+    #responseBox{padding:16px;}
+    th,td{padding:10px 8px;font-size:14px;}
+}
+@media(max-width:400px){
+    h1{font-size:24px;}
+    .subtitle{font-size:14px;}
+    #instruction{font-size:16px;}
 }
 </style>
 </head>
-
 <body>
 
 <div class="bg-animation">
-    <div class="bg-gradient"></div>
-    <div class="bg-gradient"></div>
+  <div class="bg-gradient"></div>
+  <div class="bg-gradient"></div>
 </div>
 
 <div class="container">
 
-    <button class="theme-toggle" onclick="toggleDarkMode()" aria-label="Toggle theme"></button>
+  <button class="theme-toggle" onclick="toggleDarkMode()" aria-label="Toggle theme"></button>
 
-    <div class="header">
-        <h1>AI Facial Analysis</h1>
-        <p class="subtitle">Advanced facial recognition technology</p>
+  <div class="header">
+    <h1>AI Facial Analysis</h1>
+    <p class="subtitle">Advanced facial recognition technology</p>
+  </div>
+
+  <div class="instruction-card">
+    <div class="step-indicator">Step 1 of 3</div>
+    <div id="instruction">Look Straight (Front Face)</div>
+    <div id="countdown"></div>
+  </div>
+
+  <div class="video-card">
+    <div class="video-wrapper">
+      <video id="video" autoplay playsinline></video>
+      <canvas id="canvas" width="640" height="480"></canvas>
+      <div class="face-guide">
+        <div class="face-oval"></div>
+        <div class="guide-text">Position your face inside the oval</div>
+      </div>
+      <div class="turn-instruction" id="turnInstruction"></div>
+      <div class="detection-indicator" id="detectionIndicator">✓ Pose detected! Hold still...</div>
+      <div id="faceDots"></div>
     </div>
+  </div>
 
-    <div class="instruction-card">
-        <div class="step-indicator">Step 1 of 3</div>
-        <div id="instruction">Look Straight (Front Face)</div>
-        <div id="countdown"></div>
-    </div>
+  <div class="button-group">
+    <button id="captureBtn">📸 Capture Photo</button>
+    <button id="retakeBtn" style="display:none;">↺ Retake Photo</button>
+    <button id="autoCaptureBtn">⚡ Enable Auto Capture</button>
+  </div>
 
-    <div class="video-card">
-        <div class="video-wrapper">
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas" width="640" height="480"></canvas>
-            <div class="face-guide">
-                <div class="face-oval"></div>
-                <div class="guide-text">Position your face inside the oval</div>
-            </div>
-            <div class="turn-instruction" id="turnInstruction"></div>
-            <div class="detection-indicator" id="detectionIndicator">✓ Pose detected! Hold still...</div>
-            <div id="faceDots"></div>
-        </div>
-    </div>
+  <div id="thumbs"></div>
 
-    <div class="button-group">
-        <button id="captureBtn">📸 Capture Photo</button>
-        <button id="retakeBtn" style="display:none;">↺ Retake Photo</button>
-        <button id="autoCaptureBtn">⚡ Enable Auto Capture</button>
-    </div>
+  <div id="uploadProgress">
+    <div id="uploadProgressBar"></div>
+  </div>
 
-    <div id="thumbs"></div>
-
-    <div id="uploadProgress">
-        <div id="uploadProgressBar"></div>
-    </div>
-
-    <div id="responseBox">
-        <span style="opacity: 0.6;">Waiting for images...</span>
-    </div>
+  <div id="responseBox">
+    <span style="opacity:.6;">Waiting for images...</span>
+  </div>
 
 </div>
 
-<!-- SOUNDS -->
 <audio id="countdownBeep" preload="auto">
-    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
 </audio>
 <audio id="cameraShutter" preload="auto">
-    <source src="https://pixabay.com/sound-effects/camera-shutter-314056" type="audio/ogg">
+  <source src="https://pixabay.com/sound-effects/camera-shutter-314056" type="audio/ogg">
 </audio>
 
-<!-- MediaPipe Face Mesh -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 
 <script>
-/* ---------------- VARIABLES ---------------- */
 let step = 1;
-let images = {front: null, right: null, left: null};
-let thumbURLs = {front: null, right: null, left: null};
+let images = {front:null, right:null, left:null};
+let thumbURLs = {front:null, right:null, left:null};
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const faceDots = document.getElementById("faceDots");
@@ -753,387 +195,317 @@ let autoCaptureLock = false;
 let detectionFrameCount = 0;
 const DETECTION_THRESHOLD = 15;
 
-/* Detect whether camera is front-facing so we know mirroring logic */
 let isFrontCamera = true;
 
-/* ---------------- INITIALIZATION ---------------- */
 document.addEventListener("DOMContentLoaded", async () => {
-    await startCamera();
-    startFaceMesh();
-    document.getElementById("captureBtn").onclick = startCountdown;
-    document.getElementById("retakeBtn").onclick = retake;
-    document.getElementById("autoCaptureBtn").onclick = toggleAutoCapture;
+  await startCamera();
+  startFaceMesh();
+  document.getElementById("captureBtn").onclick = startCountdown;
+  document.getElementById("retakeBtn").onclick = retake;
+  document.getElementById("autoCaptureBtn").onclick = toggleAutoCapture;
 });
 
-/* ---------------- CAMERA ---------------- */
 async function startCamera() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { 
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-                facingMode: "user"
-            }
-        });
-        video.srcObject = stream;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{width:{ideal:1280},height:{ideal:720},facingMode:"user"}
+    });
+    video.srcObject = stream;
 
-        // Try to detect facing mode
-        const track = stream.getVideoTracks()[0];
-        const settings = track.getSettings();
-        if (settings.facingMode) {
-            isFrontCamera = settings.facingMode === "user" || settings.facingMode === "front";
-        } else {
-            // fallback assumption (most mobile front-camera streams are mirrored)
-            isFrontCamera = true;
-        }
-        // If front camera, keep mirror via CSS; if not, remove mirror
-        if (!isFrontCamera) {
-            video.style.transform = "none";
-        }
-
-    } catch (err) {
-        console.error("Camera error:", err);
-        alert("Could not access camera. Please ensure camera permissions are granted.");
-    }
-}
-
-/* ---------------- DARK MODE ---------------- */
-function toggleDarkMode() {
-    document.body.classList.toggle("light");
-}
-
-/* ---------------- COUNTDOWN ---------------- */
-function startCountdown() {
-    faceDots.style.display = 'block';
-    const captureBtn = document.getElementById("captureBtn");
-    captureBtn.disabled = true;
-    const cd = document.getElementById("countdown");
-    let count = 3;
-    
-    function beepStep() {
-        if (count > 0) {
-            countdownBeep.currentTime = 0;
-            countdownBeep.play().catch(err => console.log("Beep play error:", err));
-            cd.innerText = count;
-            cd.style.animation = 'none';
-            setTimeout(() => { cd.style.animation = 'pulse 1s ease-in-out'; }, 10);
-            count--;
-            setTimeout(beepStep, 1000);
-        } else {
-            cd.innerText = '';
-            capturePhoto();
-        }
-    }
-    beepStep();
-}
-
-/* ---------------- CAPTURE PHOTO ---------------- */
-function capturePhoto() {
-    const ctx = canvas.getContext("2d");
-    // ensure canvas matches video resolution
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    if (isFrontCamera) {
-        ctx.save();
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
+    const track = stream.getVideoTracks()[0];
+    const settings = track.getSettings();
+    if (settings.facingMode) {
+      isFrontCamera = (settings.facingMode === "user" || settings.facingMode === "front");
     } else {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      isFrontCamera = true;
     }
-
-    try {
-        if (cameraShutter && cameraShutter.readyState >= 2) {
-            cameraShutter.currentTime = 0;
-            cameraShutter.play().catch(() => {});
-        }
-    } catch (e) {
-        console.log("Audio error:", e);
+    if (!isFrontCamera) {
+      video.style.transform = "none";
     }
-
-    canvas.toBlob(blob => {
-        let url = URL.createObjectURL(blob);
-        const stepIndicator = document.querySelector('.step-indicator');
-        
-        if (step === 1) {
-            images.front = new File([blob], "front.jpg", {type: "image/jpeg"});
-            thumbURLs.front = url;
-            step = 2;
-        } else if (step === 2) {
-            images.right = new File([blob], "right.jpg", {type: "image/jpeg"});
-            thumbURLs.right = url;
-            step = 3;
-        } else if (step === 3) {
-            images.left = new File([blob], "left.jpg", {type: "image/jpeg"});
-            thumbURLs.left = url;
-            step = 4;
-        }
-
-        if (step <= 3) {
-            stepIndicator.innerText = `Step ${step} of 3`;
-        } else {
-            stepIndicator.innerText = `Complete`;
-        }
-
-        updateThumbnails();
-        document.getElementById("captureBtn").disabled = false;
-        document.getElementById("retakeBtn").style.display = "block";
-
-        // If autoCapture still enabled and not done, update instruction overlay
-        if (autoCaptureEnabled && step <= 3) {
-            updateTurnInstruction();
-        }
-    }, "image/jpeg", 0.95);
+  } catch(e) {
+    console.error("Camera error:", e);
+    alert("Could not access camera. Please ensure camera permissions are granted.");
+  }
 }
 
-/* ---------------- RETAKE ---------------- */
-function retake() {
-    const stepIndicator = document.querySelector('.step-indicator');
-    
-    if (step === 2) {
-        images.front = null;
-        thumbURLs.front = null;
-        step = 1;
-    } else if (step === 3) {
-        images.right = null;
-        thumbURLs.right = null;
-        step = 2;
-    } else if (step === 4) {
-        images.left = null;
-        thumbURLs.left = null;
-        step = 3;
-    }
+function toggleDarkMode(){document.body.classList.toggle("light");}
 
-    stepIndicator.innerText = `Step ${step} of 3`;
-    // Reset instruction text
-    if (step === 1) {
-        document.getElementById("instruction").innerText = "Look Straight (Front Face)";
+function startCountdown() {
+  faceDots.style.display='block';
+  const captureBtn = document.getElementById("captureBtn");
+  captureBtn.disabled = true;
+  const cd = document.getElementById("countdown");
+  let count = 3;
+  function beepStep(){
+    if(count>0){
+      countdownBeep.currentTime=0;
+      countdownBeep.play().catch(()=>{});
+      cd.innerText = count;
+      cd.style.animation='none';
+      setTimeout(()=>{cd.style.animation='pulse 1s ease-in-out';},10);
+      count--;
+      setTimeout(beepStep,1000);
+    } else {
+      cd.innerText='';
+      capturePhoto();
+    }
+  }
+  beepStep();
+}
+
+function capturePhoto() {
+  const ctx = canvas.getContext("2d");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  if (isFrontCamera) {
+    ctx.save();
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  } else {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  }
+
+  try{
+    if(cameraShutter && cameraShutter.readyState>=2){
+      cameraShutter.currentTime=0;
+      cameraShutter.play().catch(()=>{});
+    }
+  }catch(e){}
+
+  canvas.toBlob(blob=>{
+    const url = URL.createObjectURL(blob);
+    const stepIndicator = document.querySelector('.step-indicator');
+    if(step===1){
+      images.front = new File([blob],"front.jpg",{type:"image/jpeg"});
+      thumbURLs.front = url;
+      step = 2;
+    } else if(step===2){
+      images.right = new File([blob],"right.jpg",{type:"image/jpeg"});
+      thumbURLs.right = url;
+      step = 3;
+    } else if(step===3){
+      images.left = new File([blob],"left.jpg",{type:"image/jpeg"});
+      thumbURLs.left = url;
+      step = 4;
+    }
+    if(step <= 3){
+      stepIndicator.innerText = `Step ${step} of 3`;
+    } else {
+      stepIndicator.innerText = `Complete`;
     }
 
     updateThumbnails();
+    document.getElementById("captureBtn").disabled=false;
+    document.getElementById("retakeBtn").style.display="block";
+
+    if(autoCaptureEnabled && step <= 3){
+      updateTurnInstruction();
+    }
+  },"image/jpeg",0.95);
 }
 
-/* ---------------- THUMBNAILS ---------------- */
-function updateThumbnails() {
-    const t = document.getElementById("thumbs");
-    t.innerHTML = "";
-    if (thumbURLs.front) t.innerHTML += `<div class="thumb" style="background-image:url('${thumbURLs.front}')"></div>`;
-    if (thumbURLs.right) t.innerHTML += `<div class="thumb" style="background-image:url('${thumbURLs.right}')"></div>`;
-    if (thumbURLs.left) t.innerHTML += `<div class="thumb" style="background-image:url('${thumbURLs.left}')"></div>`;
+function retake() {
+  const stepIndicator = document.querySelector('.step-indicator');
+  if(step===2){
+    images.front=null; thumbURLs.front=null; step=1;
+  } else if(step===3){
+    images.right=null; thumbURLs.right=null; step=2;
+  } else if(step===4){
+    images.left=null; thumbURLs.left=null; step=3;
+  }
+  stepIndicator.innerText = `Step ${step} of 3`;
+  if(step===1){
+    document.getElementById("instruction").innerText = "Look Straight (Front Face)";
+  }
+  updateThumbnails();
 }
 
-/* ---------------- UPLOAD TO API ---------------- */
-async function uploadToAPI() {
-    uploadProgress.style.display = "block";
-    uploadProgressBar.style.width = "0%";
-
-    const fd = new FormData();
-    fd.append("v", "1.1");
-    fd.append("t", "mukaz27");
-    fd.append("image1", images.front);
-    fd.append("image2", images.right);
-    fd.append("image3", images.left);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://artifutech-face-ai-api-n.as.r.appspot.com/api", true);
-
-    xhr.upload.onprogress = e => {
-        if (e.lengthComputable) {
-            uploadProgressBar.style.width = (e.loaded / e.total * 100) + "%";
-        }
-    };
-
-    xhr.onload = () => {
-        uploadProgress.style.display = "none";
-        document.getElementById("instruction").innerText = "✅ Analysis Complete";
-        let parsed;
-        try {
-            parsed = JSON.parse(xhr.responseText);
-        } catch {
-            parsed = { response: xhr.responseText };
-        }
-        let table = "<table>";
-        Object.entries(parsed).forEach(([k, v]) => {
-            table += `<tr><th>${k}</th><td>${v}</td></tr>`;
-        });
-        table += `
-            <tr>
-                <th colspan="2" style="text-align:center;">
-                    Continue to recommendations: 
-                    <a href="https://mdabzan.github.io/ai-deep/recommendations_homepage_v1.html">Click here</a>
-                </th>
-            </tr>
-        `;
-        table += "</table>";
-        document.getElementById("responseBox").innerHTML = table;
-    };
-
-    xhr.onerror = () => {
-        uploadProgress.style.display = "none";
-        document.getElementById("instruction").innerText = "❌ Upload Failed";
-        document.getElementById("responseBox").innerHTML = '<span style="color: var(--danger);">Upload failed. Please try again.</span>';
-    };
-
-    xhr.send(fd);
+function updateThumbnails(){
+  const t=document.getElementById("thumbs");
+  t.innerHTML="";
+  if(thumbURLs.front) t.innerHTML+=`<div class="thumb" style="background-image:url('${thumbURLs.front}')"></div>`;
+  if(thumbURLs.right) t.innerHTML+=`<div class="thumb" style="background-image:url('${thumbURLs.right}')"></div>`;
+  if(thumbURLs.left) t.innerHTML+=`<div class="thumb" style="background-image:url('${thumbURLs.left}')"></div>`;
 }
 
-/* ---------------- AUTO CAPTURE ---------------- */
-function toggleAutoCapture() {
-    autoCaptureEnabled = !autoCaptureEnabled;
-    const btn = document.getElementById("autoCaptureBtn");
-    const turnInstruction = document.getElementById('turnInstruction');
-    const indicator = document.getElementById('detectionIndicator');
-    
-    btn.innerText = autoCaptureEnabled ? "⚡ Auto Capture ON" : "⚡ Enable Auto Capture";
-    
-    if (autoCaptureEnabled) {
-        btn.classList.add('active');
+async function uploadToAPI(){
+  uploadProgress.style.display="block";
+  uploadProgressBar.style.width="0%";
+  const fd = new FormData();
+  fd.append("v","1.1");
+  fd.append("t","mukaz27");
+  fd.append("image1",images.front);
+  fd.append("image2",images.right);
+  fd.append("image3",images.left);
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST","https://artifutech-face-ai-api-n.as.r.appspot.com/api",true);
+  xhr.upload.onprogress=e=>{
+    if(e.lengthComputable){
+      uploadProgressBar.style.width=(e.loaded/e.total*100)+"%";
+    }
+  };
+  xhr.onload=()=>{
+    uploadProgress.style.display="none";
+    document.getElementById("instruction").innerText="✅ Analysis Complete";
+    let parsed;
+    try{parsed=JSON.parse(xhr.responseText);}catch{parsed={response:xhr.responseText};}
+    let table="<table>";
+    Object.entries(parsed).forEach(([k,v])=>{
+      table+=`<tr><th>${k}</th><td>${v}</td></tr>`;
+    });
+    table+=`
+      <tr>
+        <th colspan="2" style="text-align:center;">
+          Continue to recommendations:
+          <a href="https://mdabzan.github.io/ai-deep/recommendations_homepage_v1.html">Click here</a>
+        </th>
+      </tr>`;
+    table+="</table>";
+    document.getElementById("responseBox").innerHTML=table;
+  };
+  xhr.onerror=()=>{
+    uploadProgress.style.display="none";
+    document.getElementById("instruction").innerText="❌ Upload Failed";
+    document.getElementById("responseBox").innerHTML='<span style="color:var(--danger);">Upload failed. Please try again.</span>';
+  };
+  xhr.send(fd);
+}
+
+function toggleAutoCapture(){
+  autoCaptureEnabled = !autoCaptureEnabled;
+  const btn = document.getElementById("autoCaptureBtn");
+  const turnInstruction = document.getElementById('turnInstruction');
+  const indicator = document.getElementById('detectionIndicator');
+  btn.innerText = autoCaptureEnabled ? "⚡ Auto Capture ON" : "⚡ Enable Auto Capture";
+  if(autoCaptureEnabled){
+    btn.classList.add('active');
+    autoCaptureLock = false;
+    detectionFrameCount = 0;
+    step = 1;
+    document.querySelector('.step-indicator').innerText = "Step 1 of 3";
+    document.getElementById("instruction").innerText = "Look Straight (Front Face)";
+    turnInstruction.classList.remove('show');
+    indicator.classList.remove('show');
+    updateTurnInstruction();
+  } else {
+    btn.classList.remove('active');
+    detectionFrameCount = 0;
+    autoCaptureLock = false;
+    turnInstruction.classList.remove('show');
+    indicator.classList.remove('show');
+  }
+}
+
+function updateTurnInstruction(){
+  const el = document.getElementById("turnInstruction");
+  if(!autoCaptureEnabled || step > 3){
+    el.classList.remove("show");
+    return;
+  }
+  if(step===1){
+    el.innerHTML = '<div>Look Straight</div><div class="arrow">👤</div>';
+  } else if(step===2){
+    el.innerHTML = '<div>Turn Right (show left side of face)</div><div class="arrow">➡️</div>';
+  } else if(step===3){
+    el.innerHTML = '<div>Turn Left (show right side of face)</div><div class="arrow">⬅️</div>';
+  }
+  el.classList.add("show");
+}
+
+function checkFaceOrientation(landmarks){
+  if(!autoCaptureEnabled || autoCaptureLock || step > 3) return;
+
+  const getX = x => isFrontCamera ? (1 - x) : x;
+
+  const leftX = getX(landmarks[33].x);
+  const rightX = getX(landmarks[263].x);
+  const noseX = getX(landmarks[1].x);
+
+  const eyeMidX = (leftX + rightX)/2;
+  const noseOffset = noseX - eyeMidX;
+
+  const FRONT_THRESHOLD = 0.08;
+  const TURN_THRESHOLD = 0.05;
+
+  let isCorrectPose = false;
+  let poseName = "";
+
+  if(step === 1) {
+    // For front face, accept any detected face
+    isCorrectPose = true;
+    poseName = "FRONT";
+  } else if(step === 2) {
+    if(noseOffset < -TURN_THRESHOLD) { isCorrectPose = true; poseName = "RIGHT"; }
+  } else if(step === 3) {
+    if(noseOffset > TURN_THRESHOLD) { isCorrectPose = true; poseName = "LEFT"; }
+  }
+
+  const indicator = document.getElementById("detectionIndicator");
+  if(isCorrectPose){
+    detectionFrameCount++;
+    if(detectionFrameCount > 2){
+      indicator.classList.add("show");
+      const percent = Math.floor((detectionFrameCount / DETECTION_THRESHOLD)*100);
+      indicator.textContent = `✓ ${poseName} pose - Hold still... ${percent}%`;
+    }
+    if(detectionFrameCount >= DETECTION_THRESHOLD){
+      autoCaptureLock = true;
+      detectionFrameCount = 0;
+      indicator.classList.remove("show");
+      document.getElementById('turnInstruction').classList.remove('show');
+      startCountdown();
+      setTimeout(()=>{
         autoCaptureLock = false;
-        detectionFrameCount = 0;
-        step = 1;
-        document.querySelector('.step-indicator').innerText = "Step 1 of 3";
-        document.getElementById("instruction").innerText = "Look Straight (Front Face)";
-        turnInstruction.classList.remove('show');
-        indicator.classList.remove('show');
-        updateTurnInstruction();
+        if(autoCaptureEnabled && step <= 3) updateTurnInstruction();
+      },5000);
+    }
+  } else {
+    if(detectionFrameCount > 0){
+      detectionFrameCount = 0;
+      indicator.classList.remove("show");
+    }
+  }
+}
+
+function startFaceMesh(){
+  faceMeshInstance = new FaceMesh({
+    locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+  });
+  faceMeshInstance.setOptions({
+    maxNumFaces:1,
+    refineLandmarks:true,
+    minDetectionConfidence:0.7,
+    minTrackingConfidence:0.7
+  });
+  faceMeshInstance.onResults(results=>{
+    faceDots.innerHTML = "";
+    if(results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0){
+      const landmarks = results.multiFaceLandmarks[0];
+      const vw = video.offsetWidth;
+      const vh = video.offsetHeight;
+      landmarks.forEach(pt=>{
+        const x = (isFrontCamera ? (1 - pt.x) : pt.x) * vw;
+        const y = pt.y * vh;
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        dot.style.left = x + "px";
+        dot.style.top = y + "px";
+        faceDots.appendChild(dot);
+      });
+      faceDots.style.display = "block";
+      checkFaceOrientation(landmarks);
     } else {
-        btn.classList.remove('active');
-        detectionFrameCount = 0;
-        autoCaptureLock = false;
-        turnInstruction.classList.remove('show');
-        indicator.classList.remove('show');
+      faceDots.style.display = "none";
     }
-}
-
-function updateTurnInstruction() {
-    const el = document.getElementById("turnInstruction");
-    if (!autoCaptureEnabled || step > 3) {
-        el.classList.remove("show");
-        return;
-    }
-    if (step === 1) {
-        el.innerHTML = '<div>Look Straight</div><div class="arrow">👤</div>';
-    } else if (step === 2) {
-        el.innerHTML = '<div>Turn Right (show left side of face)</div><div class="arrow">➡️</div>';
-    } else if (step === 3) {
-        el.innerHTML = '<div>Turn Left (show right side of face)</div><div class="arrow">⬅️</div>';
-    }
-    el.classList.add("show");
-}
-
-function checkFaceOrientation(landmarks) {
-    if (!autoCaptureEnabled || autoCaptureLock || step > 3) {
-        return;
-    }
-
-    // Map coordinates properly depending on mirror (front camera)
-    let getX = pt => isFrontCamera ? (1 - pt.x) : pt.x;
-
-    const leftX  = getX(landmarks[33].x);
-    const rightX = getX(landmarks[263].x);
-    const noseX  = getX(landmarks[1].x);
-
-    const eyeMidX = (leftX + rightX) / 2;
-    const noseOffset = noseX - eyeMidX;
-
-    const FRONT_THRESHOLD = 0.08;
-    const TURN_THRESHOLD  = 0.05;
-
-    let isCorrectPose = false;
-    let poseName = "";
-
-    if (step === 1) {
-        if (Math.abs(noseOffset) < FRONT_THRESHOLD) {
-            isCorrectPose = true; poseName = "FRONT";
-        }
-    } else if (step === 2) {
-        if (noseOffset < -TURN_THRESHOLD) {
-            isCorrectPose = true; poseName = "RIGHT";
-        }
-    } else if (step === 3) {
-        if (noseOffset > TURN_THRESHOLD) {
-            isCorrectPose = true; poseName = "LEFT";
-        }
-    }
-
-    const indicator = document.getElementById("detectionIndicator");
-
-    if (isCorrectPose) {
-        detectionFrameCount++;
-        if (detectionFrameCount > 2) {
-            indicator.classList.add("show");
-            const percent = Math.floor((detectionFrameCount / DETECTION_THRESHOLD) * 100);
-            indicator.textContent = `✓ ${poseName} pose - Hold still... ${percent}%`;
-        }
-        if (detectionFrameCount >= DETECTION_THRESHOLD) {
-            autoCaptureLock = true;
-            detectionFrameCount = 0;
-            indicator.classList.remove("show");
-            document.getElementById('turnInstruction').classList.remove('show');
-            startCountdown();
-            setTimeout(() => {
-                autoCaptureLock = false;
-                if (autoCaptureEnabled && step <= 3) {
-                    updateTurnInstruction();
-                }
-            }, 5000);
-        }
-    } else {
-        if (detectionFrameCount > 0) {
-            detectionFrameCount = 0;
-            indicator.classList.remove("show");
-        }
-    }
-}
-
-/* ---------------- MEDIAPIPE FACE MESH ---------------- */
-function startFaceMesh() {
-    faceMeshInstance = new FaceMesh({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-    });
-    
-    faceMeshInstance.setOptions({
-        maxNumFaces: 1,
-        refineLandmarks: true,
-        minDetectionConfidence: 0.7,
-        minTrackingConfidence: 0.7
-    });
-
-    faceMeshInstance.onResults(results => {
-        faceDots.innerHTML = "";
-        
-        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-            const landmarks = results.multiFaceLandmarks[0];
-            const vw = video.offsetWidth;
-            const vh = video.offsetHeight;
-            
-            landmarks.forEach(pt => {
-                const x = (isFrontCamera ? (1 - pt.x) : pt.x) * vw;
-                const y = pt.y * vh;
-                const dot = document.createElement("div");
-                dot.className = "dot";
-                dot.style.left = x + "px";
-                dot.style.top = y + "px";
-                faceDots.appendChild(dot);
-            });
-            
-            faceDots.style.display = "block";
-            checkFaceOrientation(landmarks);
-        } else {
-            faceDots.style.display = "none";
-        }
-    });
-
-    const camera = new Camera(video, {
-        onFrame: async () => {
-            await faceMeshInstance.send({image: video});
-        },
-        width: 640,
-        height: 480
-    });
-    camera.start();
+  });
+  const camera = new Camera(video, {
+    onFrame: async () => { await faceMeshInstance.send({image: video}); },
+    width: 640, height: 480
+  });
+  camera.start();
 }
 </script>
 
