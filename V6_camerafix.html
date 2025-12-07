@@ -475,27 +475,26 @@ function updateTurnInstruction(){
   el.classList.add("show");
 }
 
-// C2-level debug: detailed orientation log with hardware mirror detection
-function checkFaceOrientation(landmarks, isMirrored){
+// SIMPLE, ROBUST ORIENTATION USING MOBILE MIRROR ASSUMPTION
+function checkFaceOrientation(landmarks){
   if(!autoCaptureEnabled) return;
   if(autoCaptureLock || step>3) return;
+
+  const isMobileMirror = /Android|Mobile/i.test(navigator.userAgent);
+
+  const mapX = x => isMobileMirror ? (1 - x) : x;
 
   const rawLeftX  = landmarks[33].x;
   const rawRightX = landmarks[263].x;
   const rawNoseX  = landmarks[1].x;
 
-  // Hardware mirror detection regardless of UA:
-  const hardwareMirrored = rawLeftX > rawRightX; // if true, image is flipped
-  const mirrorFlag = (isMirrored || hardwareMirrored);
+  const leftX  = mapX(rawLeftX);
+  const rightX = mapX(rawRightX);
+  const noseX  = mapX(rawNoseX);
 
-  const correctedLeftX  = mirrorFlag ? (1 - rawLeftX)  : rawLeftX;
-  const correctedRightX = mirrorFlag ? (1 - rawRightX) : rawRightX;
-  const correctedNoseX  = mirrorFlag ? (1 - rawNoseX)  : rawNoseX;
+  const eyeMidX   = (leftX + rightX) / 2;
+  const noseOffset = noseX - eyeMidX;
 
-  const eyeMidX   = (correctedLeftX + correctedRightX) / 2;
-  const noseOffset = correctedNoseX - eyeMidX;
-
-  // thresholds (same for all, you can tweak later)
   const FRONT_THRESHOLD = 0.08;
   const TURN_THRESHOLD  = 0.05;
 
@@ -515,17 +514,6 @@ function checkFaceOrientation(landmarks, isMirrored){
       isCorrectPose=true;poseName="LEFT";
     }
   }
-
-  // C2 debug log:
-  console.log(
-    `[Step ${step}] ` +
-    `rawL=${rawLeftX.toFixed(3)} rawR=${rawRightX.toFixed(3)} rawN=${rawNoseX.toFixed(3)} | ` +
-    `mirroredFlag=${mirrorFlag} hardwareMirrored=${hardwareMirrored} | ` +
-    `corrL=${correctedLeftX.toFixed(3)} corrR=${correctedRightX.toFixed(3)} corrN=${correctedNoseX.toFixed(3)} | ` +
-    `noseOffset=${noseOffset.toFixed(3)} | ` +
-    `FRONT_T=${FRONT_THRESHOLD} TURN_T=${TURN_THRESHOLD} | ` +
-    `pose=${poseName || "none"} correct=${isCorrectPose} frames=${detectionFrameCount}`
-  );
 
   const indicator=document.getElementById("detectionIndicator");
 
@@ -572,14 +560,11 @@ function startFaceMesh(){
       const vw=video.offsetWidth;
       const vh=video.offsetHeight;
 
-      // Hardware mirror detection per frame:
-      const rawLeftX  = landmarks[33].x;
-      const rawRightX = landmarks[263].x;
-      const frameMirrored = rawLeftX > rawRightX;
+      const isMobileMirror = /Android|Mobile/i.test(navigator.userAgent);
+      const mapX = x => isMobileMirror ? (1 - x) : x;
 
-      // Draw dots using corrected X (so overlay matches logical orientation)
       landmarks.forEach(pt=>{
-        const xNorm = frameMirrored ? (1 - pt.x) : pt.x;
+        const xNorm = mapX(pt.x);
         const x = xNorm * vw;
         const y = pt.y * vh;
         const dot=document.createElement("div");
@@ -590,7 +575,7 @@ function startFaceMesh(){
       });
 
       faceDots.style.display="block";
-      checkFaceOrientation(landmarks, frameMirrored);
+      checkFaceOrientation(landmarks);
     }else{
       faceDots.style.display="none";
     }
