@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>YouCam Camera Test</title>
+  <style>
+    #YMK-module {
+      width: 640px;
+      height: 480px;
+      background: black;
+      border: 1px solid #555;
+    }
+  </style>
+</head>
+<body>
+
+<button onclick="startCam()">Open CameraKit</button>
+
+<div id="YMK-module"></div>
+
+<div id="captured-results"></div>
+
+<script>
+  window.ymkAsyncInit = function () {
+    console.log("YMK ready");
+
+    YMK.addEventListener("loaded", () => {
+      console.log("Loaded");
+    });
+
+    YMK.addEventListener("faceDetectionCaptured", (result) => {
+      console.log("Captured", result);
+    });
+  };
+
+  function startCam() {
+    console.log("Open cam");
+
+    YMK.init({
+      faceDetectionMode: "skincare",
+      imageFormat: "base64",
+      language: "enu"
+    });
+
+    YMK.openCameraKit();
+  }
+</script>
+
+<script src="https://plugins-media.makeupar.com/v2.1-camera-kit/sdk.js"></script>
+
+</body>
+</html>
