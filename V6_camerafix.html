@@ -6,6 +6,7 @@
 <title>AI Facial Analysis</title>
 
 <style>
+/* ... (CSS same as before) ... */
 :root {
     --primary: #6366f1;
     --primary-dark: #4f46e5;
@@ -23,11 +24,7 @@
     --shadow-lg: 0 25px 50px -12px rgba(0,0,0,0.25);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-    background:var(--bg-dark);color:var(--text-dark);min-height:100vh;
-    transition:background .3s ease,color .3s ease;overflow-x:hidden;
-}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:var(--bg-dark);color:var(--text-dark);min-height:100vh;transition:background .3s ease,color .3s ease;overflow-x:hidden;}
 body.light{background:var(--bg-light);color:var(--text-light);}
 .bg-animation{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;opacity:.05;pointer-events:none;}
 .bg-gradient{position:absolute;width:500px;height:500px;border-radius:50%;filter:blur(100px);animation:float 20s infinite ease-in-out;}
@@ -193,7 +190,7 @@ let autoCaptureEnabled = false;
 let faceMeshInstance = null;
 let autoCaptureLock = false;
 let detectionFrameCount = 0;
-const DETECTION_THRESHOLD = 15;
+const DETECTION_THRESHOLD = 12; // slightly lower for turn detection
 
 let isFrontCamera = true;
 
@@ -427,20 +424,19 @@ function checkFaceOrientation(landmarks){
   const eyeMidX = (leftX + rightX)/2;
   const noseOffset = noseX - eyeMidX;
 
-  const FRONT_THRESHOLD = 0.08;
   const TURN_THRESHOLD = 0.05;
 
   let isCorrectPose = false;
   let poseName = "";
 
   if(step === 1) {
-    // For front face, accept any detected face
-    isCorrectPose = true;
-    poseName = "FRONT";
+    autoCaptureLock = true;
+    startCountdown();
+    return;
   } else if(step === 2) {
-    if(noseOffset < -TURN_THRESHOLD) { isCorrectPose = true; poseName = "RIGHT"; }
+    if(noseOffset > TURN_THRESHOLD) { isCorrectPose = true; poseName="RIGHT"; }
   } else if(step === 3) {
-    if(noseOffset > TURN_THRESHOLD) { isCorrectPose = true; poseName = "LEFT"; }
+    if(noseOffset < -TURN_THRESHOLD) { isCorrectPose = true; poseName="LEFT"; }
   }
 
   const indicator = document.getElementById("detectionIndicator");
@@ -503,7 +499,8 @@ function startFaceMesh(){
   });
   const camera = new Camera(video, {
     onFrame: async () => { await faceMeshInstance.send({image: video}); },
-    width: 640, height: 480
+    width: 640,
+    height: 480
   });
   camera.start();
 }
