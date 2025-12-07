@@ -242,7 +242,7 @@ video {
     width: 100%;
     height: auto;
     display: block;
-    /* Mirror selfie preview on all devices */
+    /* Mirror selfie preview if front camera */
     transform: scaleX(-1);
     -webkit-transform: scaleX(-1);
 }
@@ -520,7 +520,7 @@ body.light .thumb {
     overflow: hidden;
     margin-bottom: 24px;
     display: none;
-    box-shadow: inset 0 0 2px rgba(0,0,0,0.1);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
 body.light #uploadProgress {
@@ -698,10 +698,7 @@ td {
                 <div class="face-oval"></div>
                 <div class="guide-text">Position your face inside the oval</div>
             </div>
-            <div class="turn-instruction" id="turnInstruction">
-                <div>Look Straight</div>
-                <div class="arrow">👤</div>
-            </div>
+            <div class="turn-instruction" id="turnInstruction"></div>
             <div class="detection-indicator" id="detectionIndicator">✓ Pose detected! Hold still...</div>
             <div id="faceDots"></div>
         </div>
@@ -752,6 +749,12 @@ const countdownBeep = document.getElementById("countdownBeep");
 const cameraShutter = document.getElementById("cameraShutter");
 let autoCaptureEnabled = false;
 let faceMeshInstance = null;
+let autoCaptureLock = false;
+let detectionFrameCount = 0;
+const DETECTION_THRESHOLD = 15;
+
+/* Detect whether camera is front-facing so we know mirroring logic */
+let isFrontCamera = true;
 
 /* ---------------- INITIALIZATION ---------------- */
 document.addEventListener("DOMContentLoaded", async () => {
@@ -773,6 +776,21 @@ async function startCamera() {
             }
         });
         video.srcObject = stream;
+
+        // Try to detect facing mode
+        const track = stream.getVideoTracks()[0];
+        const settings = track.getSettings();
+        if (settings.facingMode) {
+            isFrontCamera = settings.facingMode === "user" || settings.facingMode === "front";
+        } else {
+            // fallback assumption (most mobile front-camera streams are mirrored)
+            isFrontCamera = true;
+        }
+        // If front camera, keep mirror via CSS; if not, remove mirror
+        if (!isFrontCamera) {
+            video.style.transform = "none";
+        }
+
     } catch (err) {
         console.error("Camera error:", err);
         alert("Could not access camera. Please ensure camera permissions are granted.");
@@ -812,35 +830,24 @@ function startCountdown() {
 /* ---------------- CAPTURE PHOTO ---------------- */
 function capturePhoto() {
     const ctx = canvas.getContext("2d");
-    ctx.save();
-    // Flip horizontally to correct for mirrored preview
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    ctx.restore();
+    // ensure canvas matches video resolution
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-    // Try to play shutter sound (may fail on some browsers)
+    if (isFrontCamera) {
+        ctx.save();
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+    } else {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
+
     try {
         if (cameraShutter && cameraShutter.readyState >= 2) {
             cameraShutter.currentTime = 0;
-            cameraShutter.play().catch(() => {
-                // Fallback: simple beep
-                try {
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    oscillator.frequency.value = 800;
-                    oscillator.type = 'sine';
-                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-                    oscillator.start(audioContext.currentTime);
-                    oscillator.stop(audioContext.currentTime + 0.1);
-                } catch (e) {
-                    console.log("Audio playback not available");
-                }
-            });
+            cameraShutter.play().catch(() => {});
         }
     } catch (e) {
         console.log("Audio error:", e);
@@ -854,26 +861,30 @@ function capturePhoto() {
             images.front = new File([blob], "front.jpg", {type: "image/jpeg"});
             thumbURLs.front = url;
             step = 2;
-            stepIndicator.innerText = "Step 2 of 3";
-            document.getElementById("instruction").innerText = "Turn RIGHT (show left side of face)";
         } else if (step === 2) {
             images.right = new File([blob], "right.jpg", {type: "image/jpeg"});
             thumbURLs.right = url;
             step = 3;
-            stepIndicator.innerText = "Step 3 of 3";
-            document.getElementById("instruction").innerText = "Turn LEFT (show right side of face)";
         } else if (step === 3) {
             images.left = new File([blob], "left.jpg", {type: "image/jpeg"});
             thumbURLs.left = url;
             step = 4;
-            stepIndicator.innerText = "Complete";
-            document.getElementById("instruction").innerText = "All images captured — uploading...";
-            uploadToAPI();
+        }
+
+        if (step <= 3) {
+            stepIndicator.innerText = `Step ${step} of 3`;
+        } else {
+            stepIndicator.innerText = `Complete`;
         }
 
         updateThumbnails();
         document.getElementById("captureBtn").disabled = false;
         document.getElementById("retakeBtn").style.display = "block";
+
+        // If autoCapture still enabled and not done, update instruction overlay
+        if (autoCaptureEnabled && step <= 3) {
+            updateTurnInstruction();
+        }
     }, "image/jpeg", 0.95);
 }
 
@@ -885,21 +896,22 @@ function retake() {
         images.front = null;
         thumbURLs.front = null;
         step = 1;
-        stepIndicator.innerText = "Step 1 of 3";
-        document.getElementById("instruction").innerText = "Look Straight (Front Face)";
     } else if (step === 3) {
         images.right = null;
         thumbURLs.right = null;
         step = 2;
-        stepIndicator.innerText = "Step 2 of 3";
-        document.getElementById("instruction").innerText = "Turn RIGHT (show left side of face)";
     } else if (step === 4) {
         images.left = null;
         thumbURLs.left = null;
         step = 3;
-        stepIndicator.innerText = "Step 3 of 3";
-        document.getElementById("instruction").innerText = "Turn LEFT (show right side of face)";
     }
+
+    stepIndicator.innerText = `Step ${step} of 3`;
+    // Reset instruction text
+    if (step === 1) {
+        document.getElementById("instruction").innerText = "Look Straight (Front Face)";
+    }
+
     updateThumbnails();
 }
 
@@ -946,7 +958,6 @@ async function uploadToAPI() {
         Object.entries(parsed).forEach(([k, v]) => {
             table += `<tr><th>${k}</th><td>${v}</td></tr>`;
         });
-        // Add a last row with the manual link to the recommendations page
         table += `
             <tr>
                 <th colspan="2" style="text-align:center;">
@@ -969,10 +980,6 @@ async function uploadToAPI() {
 }
 
 /* ---------------- AUTO CAPTURE ---------------- */
-let autoCaptureLock = false;
-let detectionFrameCount = 0;
-const DETECTION_THRESHOLD = 15; // Reduced for faster response
-
 function toggleAutoCapture() {
     autoCaptureEnabled = !autoCaptureEnabled;
     const btn = document.getElementById("autoCaptureBtn");
@@ -985,56 +992,50 @@ function toggleAutoCapture() {
         btn.classList.add('active');
         autoCaptureLock = false;
         detectionFrameCount = 0;
-        
-        // Show current step instruction
+        step = 1;
+        document.querySelector('.step-indicator').innerText = "Step 1 of 3";
+        document.getElementById("instruction").innerText = "Look Straight (Front Face)";
+        turnInstruction.classList.remove('show');
+        indicator.classList.remove('show');
         updateTurnInstruction();
     } else {
         btn.classList.remove('active');
         detectionFrameCount = 0;
         autoCaptureLock = false;
-        
-        // Hide all overlays
         turnInstruction.classList.remove('show');
         indicator.classList.remove('show');
     }
 }
 
 function updateTurnInstruction() {
-    const turnInstruction = document.getElementById('turnInstruction');
-    
+    const el = document.getElementById("turnInstruction");
     if (!autoCaptureEnabled || step > 3) {
-        turnInstruction.classList.remove('show');
+        el.classList.remove("show");
         return;
     }
-    
     if (step === 1) {
-        turnInstruction.innerHTML = '<div>Look Straight</div><div class="arrow">👤</div>';
-        turnInstruction.classList.add('show');
+        el.innerHTML = '<div>Look Straight</div><div class="arrow">👤</div>';
     } else if (step === 2) {
-        turnInstruction.innerHTML = '<div>Turn Right</div><div class="arrow">➡️</div>';
-        turnInstruction.classList.add('show');
+        el.innerHTML = '<div>Turn Right (show left side of face)</div><div class="arrow">➡️</div>';
     } else if (step === 3) {
-        turnInstruction.innerHTML = '<div>Turn Left</div><div class="arrow">⬅️</div>';
-        turnInstruction.classList.add('show');
+        el.innerHTML = '<div>Turn Left (show right side of face)</div><div class="arrow">⬅️</div>';
     }
+    el.classList.add("show");
 }
 
 function checkFaceOrientation(landmarks) {
-    if (!autoCaptureEnabled) {
-        return;
-    }
-    if (autoCaptureLock || step > 3) {
+    if (!autoCaptureEnabled || autoCaptureLock || step > 3) {
         return;
     }
 
-    // Mirror X for eyes/nose to match mirrored preview
-    const leftEye  = { x: (1 - landmarks[33].x), y: landmarks[33].y };
-    const rightEye = { x: (1 - landmarks[263].x), y: landmarks[263].y };
-    const nose     = { x: (1 - landmarks[1].x),   y: landmarks[1].y };
+    // Map coordinates properly depending on mirror (front camera)
+    let getX = pt => isFrontCamera ? (1 - pt.x) : pt.x;
 
-    const eyeDistance = Math.abs(rightEye.x - leftEye.x);
-    const eyeMidX = (leftEye.x + rightEye.x) / 2;
-    const noseX = nose.x;
+    const leftX  = getX(landmarks[33].x);
+    const rightX = getX(landmarks[263].x);
+    const noseX  = getX(landmarks[1].x);
+
+    const eyeMidX = (leftX + rightX) / 2;
     const noseOffset = noseX - eyeMidX;
 
     const FRONT_THRESHOLD = 0.08;
@@ -1044,35 +1045,32 @@ function checkFaceOrientation(landmarks) {
     let poseName = "";
 
     if (step === 1) {
-        if (eyeDistance > 0.08 && Math.abs(noseOffset) < FRONT_THRESHOLD) {
-            isCorrectPose = true;
-            poseName = "FRONT FACE";
+        if (Math.abs(noseOffset) < FRONT_THRESHOLD) {
+            isCorrectPose = true; poseName = "FRONT";
         }
     } else if (step === 2) {
         if (noseOffset < -TURN_THRESHOLD) {
-            isCorrectPose = true;
-            poseName = "RIGHT TURN";
+            isCorrectPose = true; poseName = "RIGHT";
         }
     } else if (step === 3) {
         if (noseOffset > TURN_THRESHOLD) {
-            isCorrectPose = true;
-            poseName = "LEFT TURN";
+            isCorrectPose = true; poseName = "LEFT";
         }
     }
 
-    const indicator = document.getElementById('detectionIndicator');
+    const indicator = document.getElementById("detectionIndicator");
 
     if (isCorrectPose) {
         detectionFrameCount++;
         if (detectionFrameCount > 2) {
-            indicator.classList.add('show');
+            indicator.classList.add("show");
             const percent = Math.floor((detectionFrameCount / DETECTION_THRESHOLD) * 100);
-            indicator.textContent = `✓ ${poseName} - Hold still... ${percent}%`;
+            indicator.textContent = `✓ ${poseName} pose - Hold still... ${percent}%`;
         }
         if (detectionFrameCount >= DETECTION_THRESHOLD) {
             autoCaptureLock = true;
             detectionFrameCount = 0;
-            indicator.classList.remove('show');
+            indicator.classList.remove("show");
             document.getElementById('turnInstruction').classList.remove('show');
             startCountdown();
             setTimeout(() => {
@@ -1085,7 +1083,7 @@ function checkFaceOrientation(landmarks) {
     } else {
         if (detectionFrameCount > 0) {
             detectionFrameCount = 0;
-            indicator.classList.remove('show');
+            indicator.classList.remove("show");
         }
     }
 }
@@ -1112,7 +1110,7 @@ function startFaceMesh() {
             const vh = video.offsetHeight;
             
             landmarks.forEach(pt => {
-                const x = (1 - pt.x) * vw;
+                const x = (isFrontCamera ? (1 - pt.x) : pt.x) * vw;
                 const y = pt.y * vh;
                 const dot = document.createElement("div");
                 dot.className = "dot";
