@@ -339,7 +339,6 @@ function startCountdown() {
 
 function capturePhoto() {
   const ctx = canvas.getContext("2d");
-  // draw without mirroring
   ctx.drawImage(video,0,0,canvas.width,canvas.height);
 
   try{
@@ -476,48 +475,57 @@ function updateTurnInstruction(){
   el.classList.add("show");
 }
 
-function checkFaceOrientation(landmarks){
+// C2-level debug: detailed orientation log with hardware mirror detection
+function checkFaceOrientation(landmarks, isMirrored){
   if(!autoCaptureEnabled) return;
   if(autoCaptureLock || step>3) return;
 
-  const isAndroid = /Android/i.test(navigator.userAgent);
-  const correctX = x => isAndroid ? (1 - x) : x;
+  const rawLeftX  = landmarks[33].x;
+  const rawRightX = landmarks[263].x;
+  const rawNoseX  = landmarks[1].x;
 
-  // Use corrected Xs so Android selfie mirror is undone
-  const leftEyeX  = correctX(landmarks[33].x);
-  const rightEyeX = correctX(landmarks[263].x);
-  const noseX     = correctX(landmarks[1].x);
+  // Hardware mirror detection regardless of UA:
+  const hardwareMirrored = rawLeftX > rawRightX; // if true, image is flipped
+  const mirrorFlag = (isMirrored || hardwareMirrored);
 
-  const eyeMidX = (leftEyeX + rightEyeX)/2;
-  const noseOffset = noseX - eyeMidX;
+  const correctedLeftX  = mirrorFlag ? (1 - rawLeftX)  : rawLeftX;
+  const correctedRightX = mirrorFlag ? (1 - rawRightX) : rawRightX;
+  const correctedNoseX  = mirrorFlag ? (1 - rawNoseX)  : rawNoseX;
 
-  // Debug logging – watch these in Android dev tools
-  console.log(
-    `[Step ${step}] android=${isAndroid} ` +
-    `leftEyeX=${leftEyeX.toFixed(3)} rightEyeX=${rightEyeX.toFixed(3)} ` +
-    `noseX=${noseX.toFixed(3)} noseOffset=${noseOffset.toFixed(3)}`
-  );
+  const eyeMidX   = (correctedLeftX + correctedRightX) / 2;
+  const noseOffset = correctedNoseX - eyeMidX;
+
+  // thresholds (same for all, you can tweak later)
+  const FRONT_THRESHOLD = 0.08;
+  const TURN_THRESHOLD  = 0.05;
 
   let isCorrectPose = false;
   let poseName = "";
 
-  // Calibrated thresholds
-  let FRONT_THRESHOLD = isAndroid ? 0.13 : 0.08;
-  let TURN_THRESHOLD  = isAndroid ? 0.02 : 0.05;
-
   if(step===1){
     if(Math.abs(noseOffset) < FRONT_THRESHOLD){
-      isCorrectPose=true;poseName="FRONT FACE";
+      isCorrectPose=true;poseName="FRONT";
     }
   }else if(step===2){
     if(noseOffset < -TURN_THRESHOLD){
-      isCorrectPose=true;poseName="RIGHT TURN";
+      isCorrectPose=true;poseName="RIGHT";
     }
   }else if(step===3){
     if(noseOffset > TURN_THRESHOLD){
-      isCorrectPose=true;poseName="LEFT TURN";
+      isCorrectPose=true;poseName="LEFT";
     }
   }
+
+  // C2 debug log:
+  console.log(
+    `[Step ${step}] ` +
+    `rawL=${rawLeftX.toFixed(3)} rawR=${rawRightX.toFixed(3)} rawN=${rawNoseX.toFixed(3)} | ` +
+    `mirroredFlag=${mirrorFlag} hardwareMirrored=${hardwareMirrored} | ` +
+    `corrL=${correctedLeftX.toFixed(3)} corrR=${correctedRightX.toFixed(3)} corrN=${correctedNoseX.toFixed(3)} | ` +
+    `noseOffset=${noseOffset.toFixed(3)} | ` +
+    `FRONT_T=${FRONT_THRESHOLD} TURN_T=${TURN_THRESHOLD} | ` +
+    `pose=${poseName || "none"} correct=${isCorrectPose} frames=${detectionFrameCount}`
+  );
 
   const indicator=document.getElementById("detectionIndicator");
 
@@ -526,7 +534,7 @@ function checkFaceOrientation(landmarks){
     if(detectionFrameCount>2){
       indicator.classList.add("show");
       const percent=Math.floor(detectionFrameCount/DETECTION_THRESHOLD*100);
-      indicator.textContent=`✓ ${poseName} - Hold still... ${percent}%`;
+      indicator.textContent=`✓ ${poseName} pose - Hold still... ${percent}%`;
     }
     if(detectionFrameCount>=DETECTION_THRESHOLD){
       autoCaptureLock=true;
@@ -563,11 +571,16 @@ function startFaceMesh(){
       const landmarks=results.multiFaceLandmarks[0];
       const vw=video.offsetWidth;
       const vh=video.offsetHeight;
-      const isAndroid = /Android/i.test(navigator.userAgent);
 
+      // Hardware mirror detection per frame:
+      const rawLeftX  = landmarks[33].x;
+      const rawRightX = landmarks[263].x;
+      const frameMirrored = rawLeftX > rawRightX;
+
+      // Draw dots using corrected X (so overlay matches logical orientation)
       landmarks.forEach(pt=>{
-        const correctedX = isAndroid ? (1 - pt.x) : pt.x;
-        const x = correctedX * vw;
+        const xNorm = frameMirrored ? (1 - pt.x) : pt.x;
+        const x = xNorm * vw;
         const y = pt.y * vh;
         const dot=document.createElement("div");
         dot.className="dot";
@@ -577,7 +590,7 @@ function startFaceMesh(){
       });
 
       faceDots.style.display="block";
-      checkFaceOrientation(landmarks);
+      checkFaceOrientation(landmarks, frameMirrored);
     }else{
       faceDots.style.display="none";
     }
