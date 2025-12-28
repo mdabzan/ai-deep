@@ -838,6 +838,77 @@ body.light .recommendations-box {
 .cam-btn.main:active {
     transform: scale(0.95);
 }
+
+/* =============================== */
+/* ===== CAMERA UI FIXES ========= */
+/* =============================== */
+
+/* 🔹 Push top UI away from face */
+.camera-top-ui {
+    top: 6px;                 /* was 12px */
+    max-width: 90%;
+    box-shadow: 0 0 18px rgba(99,102,241,0.35);
+}
+
+/* 🔹 Make instruction glow subtly */
+.camera-top-ui #instruction {
+    color: #fff;
+    text-shadow:
+        0 0 8px rgba(99,102,241,0.6),
+        0 0 16px rgba(99,102,241,0.3);
+}
+
+/* 🔹 Highlight step badge more */
+.camera-top-ui .step-indicator {
+    box-shadow:
+        0 0 10px rgba(99,102,241,0.8);
+}
+
+/* 🔹 Reserve space for guide text */
+.face-guide {
+    top: 48%;
+}
+
+.face-guide .guide-text {
+    bottom: -52px;   /* push below buttons zone */
+    opacity: 0.85;
+}
+
+/* 🔹 Push buttons LOWER so they never touch oval */
+.camera-bottom-ui {
+    bottom: 6px;     /* was 14px */
+    gap: 26px;
+}
+
+/* 🔹 Button + label layout */
+.cam-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 🔹 Labels under buttons */
+.cam-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    opacity: 0.85;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+/* 🔹 Make capture dominant */
+.cam-btn.main {
+    box-shadow:
+        0 0 0 6px rgba(255,255,255,0.25),
+        0 0 24px rgba(99,102,241,0.6);
+}
+
+/* 🔹 Small buttons more subtle */
+.cam-btn.small {
+    opacity: 0.95;
+}
+
 </style>
 </head>
 
@@ -883,10 +954,22 @@ body.light .recommendations-box {
 
     <!-- 🔹 BOTTOM CAMERA UI (BUTTONS) -->
     <div class="camera-bottom-ui">
-        <button id="retakeBtn" class="cam-btn small" style="display:none;">↺</button>
-        <button id="captureBtn" class="cam-btn main"></button>
-        <button id="autoCaptureBtn" class="cam-btn small">⚡</button>
+        <div class="cam-action">
+            <button id="retakeBtn" class="cam-btn small" style="display:none;">↺</button>
+            <span class="cam-label">Retake</span>
+        </div>
+    
+        <div class="cam-action">
+            <button id="captureBtn" class="cam-btn main"></button>
+            <span class="cam-label">Capture</span>
+        </div>
+    
+        <div class="cam-action">
+            <button id="autoCaptureBtn" class="cam-btn small">⚡</button>
+            <span class="cam-label">Auto</span>
+        </div>
     </div>
+
     </div>
     </div>
 
